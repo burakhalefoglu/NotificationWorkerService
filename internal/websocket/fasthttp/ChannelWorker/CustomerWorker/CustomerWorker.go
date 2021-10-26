@@ -1,43 +1,41 @@
-package ChannelWorker
+package CustomerWorker
 
 import (
-	"log"
-
-	hub "NotificationWorkerService/pkg/FastHttp"
-
+	hub "NotificationWorkerService/internal/websocket/fasthttp"
 	"github.com/fasthttp/websocket"
 	"github.com/valyala/fasthttp"
+	"log"
 )
 
-var upgrader = websocket.FastHTTPUpgrader{
+var clientUpgrader = websocket.FastHTTPUpgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-} 
+}
 
-func Work(ctx *fasthttp.RequestCtx,
-	 id string,
-	 projectKey string,
-	 ch *hub.Channel) {
+func StartCustomerListener(ctx *fasthttp.RequestCtx,
+	id string,
+	projectKey string,
+	ch *hub.Channel) {
 
-	err := upgrader.Upgrade(ctx, func(ws *websocket.Conn) {
+	err := clientUpgrader.Upgrade(ctx, func(ws *websocket.Conn) {
 		defer ws.Close()
-		
-		client := hub.Client{
+
+		customer := hub.Customer{
 			Id: id,
 			ProjectId: projectKey,
 			Connection: ws,
 		}
-		ch.AddClient(client)
+		ch.AddCustomer(customer)
 		log.Println("New Client is connected, total: ", len(ch.Clients))
-		
+
 		for {
 			_, message, err := ws.ReadMessage()
 			if err != nil {
 				log.Println("read:", err)
-				ch.RemoveClient(client)
+				ch.RemoveCustomer(customer)
 				break
 			}
-			log.Println(message)		
+			log.Println(message)
 		}
 	})
 
