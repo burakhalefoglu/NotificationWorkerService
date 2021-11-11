@@ -1,4 +1,4 @@
-package Models
+package models
 
 type InterstitialAdModel struct {
 	ClientIdList           []string

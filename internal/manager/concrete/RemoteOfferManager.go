@@ -1,7 +1,7 @@
 package concrete
 
 import (
-	"NotificationWorkerService/internal/Models"
+	"NotificationWorkerService/internal/models"
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	IJsonParser "NotificationWorkerService/pkg/jsonParser"
 	"log"
@@ -14,7 +14,7 @@ type RemoteOfferManager struct {
  
 func (r *RemoteOfferManager) SendMessageToClient(data *[]byte)(success bool, message string) {
 
-	remoteOfferKafkaModel := Models.RemoteOfferModel{}
+	remoteOfferKafkaModel := models.RemoteOfferModel{}
 	err := r.JsonParser.DecodeJson(data, &remoteOfferKafkaModel)
 	if err != nil {
 		log.Fatal(err)
@@ -22,7 +22,7 @@ func (r *RemoteOfferManager) SendMessageToClient(data *[]byte)(success bool, mes
 	}
 	for _, clientId := range remoteOfferKafkaModel.ClientIdList{
 
-		remoteOfferResponseModel := Models.RemoteOfferDto{
+		remoteOfferResponseModel := models.RemoteOfferDto{
 			ProductModel: remoteOfferKafkaModel.ProductModel,
 			FirstPrice: remoteOfferKafkaModel.FirstPrice,
 			LastPrice: remoteOfferKafkaModel.LastPrice,
@@ -37,10 +37,13 @@ func (r *RemoteOfferManager) SendMessageToClient(data *[]byte)(success bool, mes
 		if err != nil{
 			return false, err.Error()
 		}
-		r.WebSocket.SendMessageToClient(v,
+		websocketErr := r.WebSocket.SendMessageToClient(v,
 			clientId,
 			remoteOfferKafkaModel.ProjectId,
 			"RemoteOfferChannel")
+		if websocketErr != nil {
+			return false, websocketErr.Error()
+		}
 	}
 	return true, ""
 }

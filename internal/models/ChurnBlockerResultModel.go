@@ -1,4 +1,4 @@
-package Models
+package models
 
 type ChurnBlockerResultModel struct {
 	ClientId                string

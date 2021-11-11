@@ -1,7 +1,7 @@
 package concrete
 
 import (
-	"NotificationWorkerService/internal/Models"
+	"NotificationWorkerService/internal/models"
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	IJsonParser "NotificationWorkerService/pkg/jsonParser"
 	"log"
@@ -14,22 +14,25 @@ type ProjectCreationManager struct {
 
 func (r *ProjectCreationManager) SendMessageToCustomer(data *[]byte)(success bool, message string) {
 
-	m := Models.ProjectCreationResultModel{}
+	m := models.ProjectCreationResultModel{}
 	err := r.JsonParser.DecodeJson(data, &m)
 	if err != nil {
 		log.Fatal(err)
 		return false, err.Error()
 	}
-		responseModel := Models.ProjectCreationResultDto{
+		responseModel := models.ProjectCreationResultDto{
 			Token: m.Token,
 		}
 		v, err := r.JsonParser.EncodeJson(&responseModel)
 		if err != nil{
 			return false, err.Error()
 		}
-		r.WebSocket.SendMessageToCustomer(v,
-			m.CustomerId,
-			m.ProjectId,
-			"ProjectCreationResultChannel")
+	websocketErr := r.WebSocket.SendMessageToCustomer(v,
+		m.CustomerId,
+		m.ProjectId,
+		"ProjectCreationResultChannel")
+	if websocketErr != nil {
+		return false, websocketErr.Error()
+	}
 	return true, ""
 }

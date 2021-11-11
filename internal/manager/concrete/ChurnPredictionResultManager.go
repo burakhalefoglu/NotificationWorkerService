@@ -1,7 +1,7 @@
 package concrete
 
 import (
-	"NotificationWorkerService/internal/Models"
+	"NotificationWorkerService/internal/models"
 	IwebSocket "NotificationWorkerService/internal/websocket"
 	jsonparser "NotificationWorkerService/pkg/jsonParser"
 	"log"
@@ -13,13 +13,13 @@ type ChurnPredictionManager struct {
 }
 
 func (c *ChurnPredictionManager) SendMessageToClient(data *[]byte)(success bool, message string)  {
-	m := Models.ChurnPredictionResultModel{}
+	m := models.ChurnPredictionResultModel{}
 	err := c.JsonParser.DecodeJson(data, &m)
 	if err != nil {
 		log.Fatal(err)
 		return false, err.Error()
 	}
-	difficultyServerResultResponseModel := Models.ChurnPredictionResultDto{
+	difficultyServerResultResponseModel := models.ChurnPredictionResultDto{
 		CenterOfDifficultyLevel: m.CenterOfDifficultyLevel,
 		RangeCount:              m.RangeCount,
 	}
@@ -27,10 +27,13 @@ func (c *ChurnPredictionManager) SendMessageToClient(data *[]byte)(success bool,
 		if err != nil{
 			return false, err.Error()
 		}
-		c.WebSocket.SendMessageToClient(v,
-			m.ClientId,
-			m.ProjectId,
-			"ChurnPredictionResultChannel")
+	websocketErr := c.WebSocket.SendMessageToClient(v,
+		m.ClientId,
+		m.ProjectId,
+		"ChurnPredictionResultChannel")
+	if websocketErr != nil {
+		return false, websocketErr.Error()
+	}
 	return true, ""
 }
 

@@ -16,7 +16,7 @@ type InterstitialManager struct {
 
 func (i *InterstitialManager) SendMessageToClient(data *[]byte)(success bool, message string) {
 
-	m := Models.InterstitialAdModel{}
+	m := models.InterstitialAdModel{}
 	err := i.JsonParser.DecodeJson(data, &m)
 	if err != nil {
 		log.Fatal(err)
@@ -24,7 +24,7 @@ func (i *InterstitialManager) SendMessageToClient(data *[]byte)(success bool, me
 	}
 	for _, clientId := range m.ClientIdList{
 
-		interstitialAdResponseModel := Models.InterstitialAdDto{
+		interstitialAdResponseModel := models.InterstitialAdDto{
 			IsAdvSettingsActive:    m.IsAdvSettingsActive,
 			AdvFrequencyStrategies: m.AdvFrequencyStrategies,
 		}
@@ -32,10 +32,13 @@ func (i *InterstitialManager) SendMessageToClient(data *[]byte)(success bool, me
 		if err != nil{
 			return false, err.Error()
 		}
-		i.WebSocket.SendMessageToClient(v,
+		websocketErr := i.WebSocket.SendMessageToClient(v,
 			clientId,
 			m.ProjectId,
 			"InterstitialAdChannel")
+		if websocketErr != nil {
+			return false, websocketErr.Error()
+		}
 	}
 	return true, ""
 }

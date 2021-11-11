@@ -97,60 +97,64 @@ func (f *FastHttp) ListenServer(group *sync.WaitGroup) {
 
 func (f *FastHttp) SendMessageToClient(message *[]byte, clientId string,
 	projectId string,
-	channelName string){
+	channelName string) error{
 
 	for _, v := range f.Channel[channelName].Clients {
 		if v.Id == clientId && v.ProjectId == projectId {
 			err := v.Connection.WriteMessage(2, *message)
 			if err != nil {
 				log.Fatal(err)
-				return 
+				return err
 			}
 		}
 	}
+	return nil
 }
 
 func (f *FastHttp) SendMessageToAllClient(message *[]byte,
 	projectId string,
-	channelName string){
+	channelName string) error{
 
 	for _, v := range f.Channel[channelName].Clients {
 		if v.ProjectId == projectId {
 			err := v.Connection.WriteMessage(2, *message)
 			if err != nil {
 				log.Fatal(err)
-				return 
+				return err
 			}
 		}
 	}
+	return nil
 }
 
 func (f *FastHttp) SendMessageToCustomer(message *[]byte, customerId string,
 	projectId string,
-	channelName string){
+	channelName string) error{
 
 	for _, v := range f.Channel[channelName].Customers {
 		if v.Id == customerId && v.ProjectId == projectId {
 			err := v.Connection.WriteMessage(2, *message)
 			if err != nil {
 				log.Fatal(err)
-				return 
+				return err
 			}
 		}
 	}
+	return nil
 }
 
 func (f *FastHttp) SendMessageToAllCustomer(message *[]byte,
 	projectId string,
-	channelName string){
+	channelName string) error{
 
 	for _, v := range f.Channel[channelName].Customers {
 		if v.ProjectId == projectId {
 			err := v.Connection.WriteMessage(2, *message)
 			if err != nil {
 				log.Fatal(err)
-				return 
+				return err
 			}
 		}
 	}
+	return nil
 }

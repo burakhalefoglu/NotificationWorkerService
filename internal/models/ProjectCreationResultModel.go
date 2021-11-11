@@ -1,4 +1,4 @@
-package Models
+package models
 
 type ProjectCreationResultModel struct{
 	CustomerId string

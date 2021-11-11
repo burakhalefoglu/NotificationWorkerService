@@ -1,0 +1,84 @@
+package test
+
+import (
+	"NotificationWorkerService/internal/manager/concrete"
+	"NotificationWorkerService/internal/models"
+	"NotificationWorkerService/pkg/jsonParser/gojson"
+	"NotificationWorkerService/test/Mock/mockwebsocket"
+	"errors"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
+
+func Test_SendMessageToClient_SuccessIsTrue(t *testing.T){
+
+	//Arrange
+	var testWebsocket = new(mockwebsocket.MockWebSocket)
+	var churnBlockerManager = concrete.ChurnBlockerManager{
+		JsonParser:      &gojson.GoJson{},
+		WebSocket: testWebsocket,
+	}
+	m := models.ChurnBlockerResultModel{
+		ClientId:                "TestClientId",
+		ProjectId:               "TestProjectId",
+		CenterOfDifficultyLevel: 8,
+		RangeCount:              2,
+	}
+	difficultyServerResultResponseModel := models.ChurnBlockerResultDto{
+		CenterOfDifficultyLevel: m.CenterOfDifficultyLevel,
+		RangeCount:              m.RangeCount,
+	}
+	responseModel, _ := churnBlockerManager.JsonParser.EncodeJson(&difficultyServerResultResponseModel)
+	testWebsocket.On("SendMessageToClient",
+		responseModel,
+		"TestClientId",
+		"TestProjectId",
+		"ChurnBlockerResultChannel").Return(nil)
+
+	rawModel, _ := churnBlockerManager.JsonParser.EncodeJson(&m)
+
+	//Act
+	success, err:= churnBlockerManager.SendMessageToClient(rawModel)
+
+
+	//Assert
+	assert.Equal(t, true, success)
+	assert.Equal(t, "", err)
+
+}
+
+func Test_SendMessageToClient_SuccessIsFalse(t *testing.T){
+	//Arrange
+	var testWebsocket = new(mockwebsocket.MockWebSocket)
+	var churnBlockerManager = concrete.ChurnBlockerManager{
+		JsonParser:      &gojson.GoJson{},
+		WebSocket: testWebsocket,
+	}
+	m := models.ChurnBlockerResultModel{
+		ClientId:                "TestClientId",
+		ProjectId:               "TestProjectId",
+		CenterOfDifficultyLevel: 8,
+		RangeCount:              2,
+	}
+	difficultyServerResultResponseModel := models.ChurnBlockerResultDto{
+		CenterOfDifficultyLevel: m.CenterOfDifficultyLevel,
+		RangeCount:              m.RangeCount,
+	}
+	responseModel, _ := churnBlockerManager.JsonParser.EncodeJson(&difficultyServerResultResponseModel)
+	testWebsocket.On("SendMessageToClient",
+		responseModel,
+		"TestClientId",
+		"TestProjectId",
+		"ChurnBlockerResultChannel").Return(errors.New("FakeError"))
+
+	rawModel, _ := churnBlockerManager.JsonParser.EncodeJson(&m)
+
+	//Act
+	success, err:= churnBlockerManager.SendMessageToClient(rawModel)
+
+
+	//Assert
+	assert.Equal(t, false, success)
+	assert.Equal(t, "FakeError", err)
+
+}

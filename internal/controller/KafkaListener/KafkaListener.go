@@ -19,12 +19,12 @@ func (k *KafkaListener)StartKafkaListening(wg *sync.WaitGroup) {
 
 	wg.Add(5)
 
-	go k.Kafka.Consume("RemoteOfferModel",
+	go k.Kafka.Consume("RemoteOfferEventModel",
 		"RemoteOfferModel_ConsumerGroup",
 		wg,
 		k.RemoteOfferM.SendMessageToClient)
 
-	go k.Kafka.Consume("InterstitialAdModel",
+	go k.Kafka.Consume("InterstitialAdEventModel",
 		"InterstitialAdModel_ConsumerGroup",
 		wg,
 		k.InterstitialAdM.SendMessageToClient)
@@ -39,7 +39,7 @@ func (k *KafkaListener)StartKafkaListening(wg *sync.WaitGroup) {
 		wg,
 		k.ChurnPredictionResultM.SendMessageToClient)
 
-	go k.Kafka.Consume("ProjectCreationResultModel",
+	go k.Kafka.Consume("ProjectCreationResult",
 		"ProjectCreationResultModel_ConsumerGroup",
 		wg,
 		k.ProjectCreationResultM.SendMessageToCustomer)
