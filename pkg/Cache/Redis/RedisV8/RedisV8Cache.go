@@ -3,6 +3,8 @@ package RedisV8
 import (
 	"context"
 	"github.com/go-redis/redis/v8"
+	"github.com/joho/godotenv"
+	"os"
 	"time"
 )
 
@@ -10,20 +12,24 @@ type redisCache struct {
 	Client *redis.Client
 }
 
-var rdb = redis.NewClient(&redis.Options{
-	Addr:     "localhost:6379",
-	Password: "",
-	DB:       0,
-})
+func ConnectRedis() *redis.Client{
+	godotenv.Load()
+	return redis.NewClient(&redis.Options{
+		Addr:     os.Getenv("REDIS_CONN"),
+		Password:  os.Getenv("REDIS_PASS"),
+		DB:       0,
+	})
+
+}
 
 var RedisV8 = redisCache{
-	Client: rdb,
+	Client: ConnectRedis(),
 }
 
 func (r *redisCache) Set(key string, value *[]byte, expirationMinutes int32) (success bool, err error){
 
 	expMinutes := time.Duration(expirationMinutes) * time.Minute
-	 var result = rdb.Set(context.Background(),key, value, expMinutes)
+	 var result = r.Client.Set(context.Background(),key, value, expMinutes)
 	if result.Err() != nil{
 		return false, result.Err()
 	}
@@ -32,7 +38,7 @@ func (r *redisCache) Set(key string, value *[]byte, expirationMinutes int32) (su
 
 func (r *redisCache) Get(key string) (value string, err error){
 
-	 var result = rdb.Get(context.Background(),key)
+	 var result = r.Client.Get(context.Background(),key)
 	 if result.Err() != nil{
 		 return "", err
 	 }
@@ -41,7 +47,7 @@ func (r *redisCache) Get(key string) (value string, err error){
 
 func (r *redisCache) Delete(key string) (success bool, err error){
 
-	 var result = rdb.Del(context.Background(),key)
+	 var result = r.Client.Del(context.Background(),key)
 	 if result.Err() != nil{
 		 return false, err
 	 }

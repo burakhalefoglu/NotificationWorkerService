@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
 	"log"
+	"os"
 	"sync"
 )
 
@@ -73,7 +74,7 @@ func (f *fiberWebsocket) ListenServer(wgGroup *sync.WaitGroup) {
 		app,
 		FiberServer.Channel["ProjectCreationResultChannel"])
 
-	log.Fatal(app.Listen("localhost:8001"))
+	log.Fatal(app.Listen(os.Getenv("WEBSOCKET_CONN")))
 }
 
 

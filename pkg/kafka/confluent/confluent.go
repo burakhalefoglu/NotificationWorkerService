@@ -13,7 +13,7 @@ type Kafka struct {
 
 func (k *Kafka) Produce(key *[]byte, value *[]byte, topic string) (err error) {
 
-	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "192.168.1.1:9092"})
+	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": os.Getenv("KAFKA_BROKER")})
 	if err != nil {
 		panic(err)
 	}
@@ -30,7 +30,7 @@ func (k *Kafka) Consume(topic string, groupId string, waitGroup *sync.WaitGroup,
 
 	defer waitGroup.Done()
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers":    "192.168.1.1:9092",
+		"bootstrap.servers":    os.Getenv("KAFKA_BROKER"),
 		"group.id":             groupId,
 		"auto.offset.reset":    "smallest",
 		topic: 					topic,
