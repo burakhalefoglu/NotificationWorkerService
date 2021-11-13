@@ -1,10 +1,9 @@
-package fastHttpServer
+package hub
 
 import (
 	"fmt"
+	"github.com/gofiber/websocket/v2"
 	"log"
-
-	"github.com/fasthttp/websocket"
 )
 
 type Channel struct {

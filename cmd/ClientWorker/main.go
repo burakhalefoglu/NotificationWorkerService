@@ -3,8 +3,8 @@ package main
 import (
 	"NotificationWorkerService/internal/IoC"
 	"NotificationWorkerService/internal/controller"
-	IWebSocket "NotificationWorkerService/internal/websocket"
-	fastHttpServer "NotificationWorkerService/internal/websocket/fasthttp"
+	websocket "NotificationWorkerService/internal/websocket"
+	fiber "NotificationWorkerService/internal/websocket/fiber"
 	"runtime"
 	"sync"
 )
@@ -15,8 +15,8 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	IWebSocket.ListenServer(fastHttpServer.FastHttpServer, &wg)
 	controller.StartListening(IoC.KafkaController, &wg)
+	websocket.ListenServer(fiber.FiberServer, &wg)
 
 	wg.Wait()
 }

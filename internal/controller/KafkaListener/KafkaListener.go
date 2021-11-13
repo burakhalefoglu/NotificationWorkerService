@@ -18,7 +18,6 @@ type KafkaListener struct {
 func (k *KafkaListener)StartKafkaListening(wg *sync.WaitGroup) {
 
 	wg.Add(5)
-
 	go k.Kafka.Consume("RemoteOfferEventModel",
 		"RemoteOfferModel_ConsumerGroup",
 		wg,

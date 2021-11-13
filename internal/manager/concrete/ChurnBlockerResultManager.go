@@ -23,6 +23,7 @@ func (c *ChurnBlockerManager) SendMessageToClient(data *[]byte)(success bool, me
 		CenterOfDifficultyLevel: m.CenterOfDifficultyLevel,
 		RangeCount:              m.RangeCount,
 	}
+	log.Println(difficultyServerResultResponseModel)
 	v, err := c.JsonParser.EncodeJson(&difficultyServerResultResponseModel)
 	if err != nil{
 		return false, err.Error()

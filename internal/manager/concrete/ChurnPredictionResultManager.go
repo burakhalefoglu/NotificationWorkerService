@@ -23,7 +23,8 @@ func (c *ChurnPredictionManager) SendMessageToClient(data *[]byte)(success bool,
 		CenterOfDifficultyLevel: m.CenterOfDifficultyLevel,
 		RangeCount:              m.RangeCount,
 	}
-		v, err := c.JsonParser.EncodeJson(&difficultyServerResultResponseModel)
+	log.Println(difficultyServerResultResponseModel)
+	v, err := c.JsonParser.EncodeJson(&difficultyServerResultResponseModel)
 		if err != nil{
 			return false, err.Error()
 		}
