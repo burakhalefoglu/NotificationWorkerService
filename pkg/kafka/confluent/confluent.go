@@ -1,69 +1,78 @@
 package confluent
 
 import (
-	"fmt"
+	"NotificationWorkerService/pkg/logger"
 	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
-	"log"
 	"os"
 	"sync"
 )
 
-type Kafka struct {
+type confluentKafka struct {
+	Log *logger.ILog
 }
 
-func (k *Kafka) Produce(key *[]byte, value *[]byte, topic string) (err error) {
+func ConfluentKafkaConstructor(log *logger.ILog) *confluentKafka {
+	return &confluentKafka{Log: log}
+}
+
+func (k *confluentKafka) Produce(key *[]byte, value *[]byte, topic string) (err error) {
 
 	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": os.Getenv("KAFKA_BROKER")})
 	if err != nil {
+		(*k.Log).SendPanicLog("ConfluentKafka", "Produce Connection Failed: ", err.Error())
 		panic(err)
 	}
-		p.Produce(&kafka.Message{
-			Key: *key,
-			TopicPartition: kafka.TopicPartition{Topic: &topic},
-			Value:          *value,
-		}, nil)
+	pErr := p.Produce(&kafka.Message{
+		Key:            *key,
+		TopicPartition: kafka.TopicPartition{Topic: &topic},
+		Value:          *value,
+	}, nil)
+	if pErr != nil {
+		return pErr
+	}
+	(*k.Log).SendInfoLog("ConfluentKafka", "Producer", topic, key)
 	p.Flush(15 * 1000)
 	return nil
 }
 
-func (k *Kafka) Consume(topic string, groupId string, waitGroup *sync.WaitGroup, callback func( data *[]byte) (success bool, message string)) {
+func (k *confluentKafka) Consume(topic string, groupId string, waitGroup *sync.WaitGroup, callback func(data *[]byte) (bool, string)) {
 
-	defer waitGroup.Done()
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers":    os.Getenv("KAFKA_BROKER"),
 		"group.id":             groupId,
-		"auto.offset.reset":    "smallest",
-		topic: 					topic,
-	})
+		"auto.offset.reset":    "smallest"})
 	if err != nil{
+		//k.Log.SendPanicLog("ConfluentKafka", "Consumer Connection Failed: ", err.Error())
 		panic(err)
 	}
-	consumer.SubscribeTopics([]string{topic}, nil)
 
 	var run = true
 	for run == true {
 		ev := consumer.Poll(0)
 		switch e := ev.(type) {
 		case *kafka.Message:
-			success, _ := callback(&e.Value)
-			if success == true{
+			isSuccess, _ := callback(&e.Value)
+			(*k.Log).SendInfoLog("ConfluentKafka", "Consumer", topic, groupId)
+			if isSuccess {
 				go func() {
 					offsets, err := consumer.Commit()
 					if err != nil{
-						log.Printf("%% Reached %v\n", err)
+						(*k.Log).SendErrorfLog("ConfluentKafka",
+							"Consumer","%% Commit failed %v\n", offsets, err.Error())
 					}
-					log.Printf("%% Reached %v\n", offsets)
 				}()
 			}
 
 		case kafka.PartitionEOF:
-			log.Printf("%% Reached %v\n", e)
+			(*k.Log).SendErrorfLog("ConfluentKafka",
+				"Consumer","%% PartitionEOF %v\n", e, err.Error())
 		case kafka.Error:
-			fmt.Fprintf(os.Stderr, "%% Error: %v\n", e)
+			(*k.Log).SendErrorfLog("ConfluentKafka",
+				"Consumer","%% Kafka Error: %v\n", e, err.Error())
 			run = false
 		default:
-			log.Printf("Ignored %v\n", e)
 		}
 	}
+	waitGroup.Done()
 }
 

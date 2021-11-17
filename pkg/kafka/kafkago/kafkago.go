@@ -1,6 +1,7 @@
 package kafkago
 
 import (
+	"NotificationWorkerService/pkg/logger"
 	"context"
 	"log"
 	"os"
@@ -12,9 +13,15 @@ import (
 	"github.com/segmentio/kafka-go/snappy"
 )
 
-type KafkaGo struct {}
+type kafkaGo struct {
+	Log *logger.ILog
+}
 
-func (k *KafkaGo) Produce(key *[]byte, value *[]byte, topic string) (err error) {
+func KafkaGoConstructor(log *logger.ILog) *kafkaGo {
+	return &kafkaGo{Log: log}
+}
+
+func (k *kafkaGo) Produce(key *[]byte, value *[]byte, topic string) (err error) {
 	writer, _ := writerConfigure([]string{os.Getenv("KAFKA_BROKER")}, uuid.New().String(), topic)
 	message := kafka.Message{
 		Key:   *key,
@@ -22,35 +29,36 @@ func (k *KafkaGo) Produce(key *[]byte, value *[]byte, topic string) (err error) 
 		Time:  time.Now(),
 	}
 	err = writer.WriteMessages(context.Background(), message)
+	(*k.Log).SendInfoLog("kafkaGo", "Producer", topic, key)
 	return err
 }
 
 
-func (k *KafkaGo) Consume(topic string, groupId string, waitGroup *sync.WaitGroup, callback func(data *[]byte)(success bool, message string)) {
-
+func (k *kafkaGo) Consume(topic string, groupId string, wg *sync.WaitGroup,callback func(data *[]byte) (bool, string)) {
 	reader, _ := readerConfigure([]string{os.Getenv("KAFKA_BROKER")}, groupId, topic)
-	defer reader.Close()
-	log.Println("Consumer work for: ",topic, "	", groupId )
-	log.Println(reader.Stats().ClientID)
+	log.Println("Consumer Started: ",topic, groupId)
+	defer func(reader *kafka.Reader) {
+		err := reader.Close()
+		if err != nil {
+			(*k.Log).SendErrorLog("kafkaGo", "Consume", "failed to reader.Close() messages:" + err.Error())
+		}
+	}(reader)
+	(*k.Log).SendInfoLog("kafkaGo", "Consume", reader.Stats().ClientID)
 	for {
 		m, err := reader.FetchMessage(context.Background())
 		if err != nil {
-			log.Fatalf("error while receiving message: %s", err.Error())
+			(*k.Log).SendFatalLog("kafkaGo", "Consume", "error while receiving message: " + err.Error())
 			continue
 		}
-		if err != nil {
-			log.Fatalf("error while receiving message: %s", err.Error())
-			continue
-		}
-		success, _ := callback(&m.Value)
-
-		if success == true {
+		(*k.Log).SendInfoLog("kafkaGo", "Consume", topic, groupId)
+		isSuccess, _ := callback(&m.Value)
+		if isSuccess {
 			if err := reader.CommitMessages(context.Background(), m); err != nil {
-				log.Fatal("failed to commit messages:", err)
+				(*k.Log).SendFatalLog("kafkaGo", "Consume", "failed to commit messages:" + err.Error())
 			}
 		}
 	}
-	waitGroup.Done()
+	wg.Done()
 }
 
 

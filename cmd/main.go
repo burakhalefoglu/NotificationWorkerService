@@ -2,9 +2,9 @@ package main
 
 import (
 	"NotificationWorkerService/internal/IoC"
+	"NotificationWorkerService/internal/IoC/golobby"
 	"NotificationWorkerService/internal/controller"
-	websocket "NotificationWorkerService/internal/websocket"
-	"NotificationWorkerService/internal/websocket/fiber"
+	"NotificationWorkerService/internal/websocket"
 	"github.com/joho/godotenv"
 	"log"
 	"runtime"
@@ -19,11 +19,11 @@ func main() {
 		log.Fatal("Error loading .env file")
 		return
 	}
+	IoC.InjectContainers(golobby.InjectionConstructor())
 
 	var wg sync.WaitGroup
-
-	controller.StartListening(IoC.KafkaController, &wg)
-	websocket.ListenServer(fiber.FiberServer, &wg)
+	controller.StartListening(&IoC.Controller, &wg)
+	websocket.ListenServer(&IoC.WebSocket, &wg)
 
 	wg.Wait()
 }

@@ -1,9 +1,11 @@
 package test
 
 import (
+	"NotificationWorkerService/internal/IoC"
 	"NotificationWorkerService/internal/manager/concrete"
 	"NotificationWorkerService/internal/models"
 	"NotificationWorkerService/pkg/jsonParser/gojson"
+	mocklog "NotificationWorkerService/test/Mock/Log"
 	"NotificationWorkerService/test/Mock/mockwebsocket"
 	"errors"
 	"github.com/stretchr/testify/assert"
@@ -15,10 +17,15 @@ func Test_RemoteOfferSendMessageToClient_SuccessIsTrue(t *testing.T){
 
 	//Arrange
 	var testWebsocket = new(mockwebsocket.MockWebSocket)
-	var interstitial = concrete.RemoteOfferManager{
-		JsonParser:      &gojson.GoJson{},
-		WebSocket: testWebsocket,
-	}
+	var testLog = new (mocklog.MockLogger)
+	var json = gojson.GoJsonConstructor()
+
+	IoC.JsonParser = json
+	IoC.WebSocket = testWebsocket
+	IoC.Logger = testLog
+
+	var remoteOffer = concrete.RemoteOfferManagerConstructor()
+
 	m := models.RemoteOfferModel{
 		ClientIdList: []string{
 			"TestId1",
@@ -45,7 +52,7 @@ func Test_RemoteOfferSendMessageToClient_SuccessIsTrue(t *testing.T){
 		StartTime:   time.Time{},
 		FinishTime:  time.Time{},
 	}
-	responseModel, _ := interstitial.JsonParser.EncodeJson(&remoteOfferDto)
+	responseModel, _ := (*remoteOffer.JsonParser).EncodeJson(&remoteOfferDto)
 
 	for _, clientId := range m.ClientIdList {
 		testWebsocket.On("SendMessageToClient",
@@ -55,10 +62,10 @@ func Test_RemoteOfferSendMessageToClient_SuccessIsTrue(t *testing.T){
 			"RemoteOfferChannel").Return(nil)
 
 	}
-	rawModel, _ := interstitial.JsonParser.EncodeJson(&m)
+	rawModel, _ := (*remoteOffer.JsonParser).EncodeJson(&m)
 
 	//Act
-	success, err:= interstitial.SendMessageToClient(rawModel)
+	success, err:= remoteOffer.SendMessageToClient(rawModel)
 
 
 	//Assert
@@ -71,10 +78,15 @@ func Test_RemoteOfferSendMessageToClient_SuccessIsFalse(t *testing.T){
 
 	//Arrange
 	var testWebsocket = new(mockwebsocket.MockWebSocket)
-	var interstitial = concrete.RemoteOfferManager{
-		JsonParser:      &gojson.GoJson{},
-		WebSocket: testWebsocket,
-	}
+	var testLog = new (mocklog.MockLogger)
+	var json = gojson.GoJsonConstructor()
+
+	IoC.JsonParser = json
+	IoC.WebSocket = testWebsocket
+	IoC.Logger = testLog
+
+	var remoteOffer = concrete.RemoteOfferManagerConstructor()
+
 	m := models.RemoteOfferModel{
 		ClientIdList: []string{
 			"TestId1",
@@ -101,7 +113,7 @@ func Test_RemoteOfferSendMessageToClient_SuccessIsFalse(t *testing.T){
 		StartTime:   time.Time{},
 		FinishTime:  time.Time{},
 	}
-	responseModel, _ := interstitial.JsonParser.EncodeJson(&remoteOfferDto)
+	responseModel, _ := (*remoteOffer.JsonParser).EncodeJson(&remoteOfferDto)
 
 	for _, clientId := range m.ClientIdList {
 		testWebsocket.On("SendMessageToClient",
@@ -111,10 +123,10 @@ func Test_RemoteOfferSendMessageToClient_SuccessIsFalse(t *testing.T){
 			"RemoteOfferChannel").Return(errors.New("fakeError"))
 
 	}
-	rawModel, _ := interstitial.JsonParser.EncodeJson(&m)
+	rawModel, _ := (*remoteOffer.JsonParser).EncodeJson(&m)
 
 	//Act
-	success, err:= interstitial.SendMessageToClient(rawModel)
+	success, err:= remoteOffer.SendMessageToClient(rawModel)
 
 
 	//Assert

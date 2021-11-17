@@ -1,45 +1,56 @@
 package KafkaListener
 
 import (
+	"NotificationWorkerService/internal/IoC"
 	"NotificationWorkerService/internal/manager/abstract"
 	IKafka "NotificationWorkerService/pkg/kafka"
 	"sync"
 )
 
-type KafkaListener struct {
-	Kafka IKafka.IKafka
-	RemoteOfferM    abstract.IRemoteOfferService
-	InterstitialAdM abstract.IInterstitialAdService
-	ChurnBlockerResultM abstract.IChurnBlockerService
-	ChurnPredictionResultM abstract.IChurnPredictionService
-	ProjectCreationResultM abstract.IProjectCreationService
+type kafkaListener struct {
+	Kafka *IKafka.IKafka
+	RemoteOfferM    *abstract.IRemoteOfferService
+	InterstitialAdM *abstract.IInterstitialAdService
+	ChurnBlockerResultM *abstract.IChurnBlockerService
+	ChurnPredictionResultM *abstract.IChurnPredictionService
+	ProjectCreationResultM *abstract.IProjectCreationService
 }
 
-func (k *KafkaListener)StartKafkaListening(wg *sync.WaitGroup) {
+func KafkaListenerConstructor() *kafkaListener {
+	return &kafkaListener{Kafka: &IoC.Kafka,
+		RemoteOfferM: &IoC.RemoteOfferM,
+		InterstitialAdM: &IoC.InterstitialAdM,
+		ChurnBlockerResultM: &IoC.ChurnBlockerResultM,
+		ChurnPredictionResultM: &IoC.ChurnPredictionResultM,
+		ProjectCreationResultM: &IoC.ProjectCreationResultM}
+}
+
+
+func (k *kafkaListener)StartKafkaListening(wg *sync.WaitGroup) {
 
 	wg.Add(5)
-	go k.Kafka.Consume("RemoteOfferEventModel",
+	go (*k.Kafka).Consume("RemoteOfferEventModel",
 		"RemoteOfferModel_ConsumerGroup",
 		wg,
-		k.RemoteOfferM.SendMessageToClient)
+		(*k.RemoteOfferM).SendMessageToClient)
 
-	go k.Kafka.Consume("InterstitialAdEventModel",
+	go (*k.Kafka).Consume("InterstitialAdEventModel",
 		"InterstitialAdModel_ConsumerGroup",
 		wg,
-		k.InterstitialAdM.SendMessageToClient)
+		(*k.InterstitialAdM).SendMessageToClient)
 
-	go k.Kafka.Consume("ChurnBlockerResultModel",
+	go (*k.Kafka).Consume("ChurnBlockerResultModel",
 		"ChurnBlockerResult_ConsumerGroup",
 		wg,
-		k.ChurnBlockerResultM.SendMessageToClient)
+		(*k.ChurnBlockerResultM).SendMessageToClient)
 
-	go k.Kafka.Consume("ChurnPredictionResultModel",
+	go(* k.Kafka).Consume("ChurnPredictionResultModel",
 		"ChurnPredictionResult_ConsumerGroup",
 		wg,
-		k.ChurnPredictionResultM.SendMessageToClient)
+		(*k.ChurnPredictionResultM).SendMessageToClient)
 
-	go k.Kafka.Consume("ProjectCreationResult",
+	go (*k.Kafka).Consume("ProjectCreationResult",
 		"ProjectCreationResultModel_ConsumerGroup",
 		wg,
-		k.ProjectCreationResultM.SendMessageToCustomer)
+		(*k.ProjectCreationResultM).SendMessageToCustomer)
 }

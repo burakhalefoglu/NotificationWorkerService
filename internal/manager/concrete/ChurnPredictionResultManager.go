@@ -1,38 +1,55 @@
 package concrete
 
 import (
+	"NotificationWorkerService/internal/IoC"
 	"NotificationWorkerService/internal/models"
-	IwebSocket "NotificationWorkerService/internal/websocket"
-	jsonparser "NotificationWorkerService/pkg/jsonParser"
-	"log"
+	IWebSocket "NotificationWorkerService/internal/websocket"
+	JsonParser "NotificationWorkerService/pkg/jsonParser"
+	"NotificationWorkerService/pkg/logger"
 )
 
-type ChurnPredictionManager struct {
-	WebSocket IwebSocket.IWebsocket
-	JsonParser jsonparser.IJsonParser
+type churnPredictionManager struct {
+	WebSocket *IWebSocket.IWebsocket
+	JsonParser *JsonParser.IJsonParser
+	Logg *logger.ILog
 }
 
-func (c *ChurnPredictionManager) SendMessageToClient(data *[]byte)(success bool, message string)  {
+func ChurnPredictionManagerConstructor() *churnPredictionManager {
+	return &churnPredictionManager{WebSocket: &IoC.WebSocket,
+		JsonParser: &IoC.JsonParser,
+		Logg: &IoC.Logger}
+}
+
+func (c *churnPredictionManager) SendMessageToClient(data *[]byte)(success bool, message string)  {
 	m := models.ChurnPredictionResultModel{}
-	err := c.JsonParser.DecodeJson(data, &m)
+	err := (*c.JsonParser).DecodeJson(data, &m)
 	if err != nil {
-		log.Fatal(err)
+		(*c.Logg).SendErrorLog("ChurnPredictionManager", "SendMessageToClient",
+			"byte array to ChurnPredictionResultModel", "Json Parser Decode Err: ", err)
 		return false, err.Error()
 	}
+
+	defer (*c.Logg).SendInfoLog("ChurnPredictionManager", "SendMessageToClient",
+		m.ClientId, m.ProjectId)
+
 	difficultyServerResultResponseModel := models.ChurnPredictionResultDto{
 		CenterOfDifficultyLevel: m.CenterOfDifficultyLevel,
 		RangeCount:              m.RangeCount,
 	}
-	log.Println(difficultyServerResultResponseModel)
-	v, err := c.JsonParser.EncodeJson(&difficultyServerResultResponseModel)
+
+	v, err :=(*c.JsonParser).EncodeJson(&difficultyServerResultResponseModel)
 		if err != nil{
+			(*c.Logg).SendErrorLog("ChurnPredictionManager", "SendMessageToClient",
+				"difficultyServerResultResponseModel to byte array", "Json Parser Encode Err: ", err)
 			return false, err.Error()
 		}
-	websocketErr := c.WebSocket.SendMessageToClient(v,
+	websocketErr := (*c.WebSocket).SendMessageToClient(v,
 		m.ClientId,
 		m.ProjectId,
 		"ChurnPredictionResultChannel")
 	if websocketErr != nil {
+		(*c.Logg).SendErrorLog("ChurnPredictionManager", "SendMessageToClient",
+			"WebSocket error: ", err)
 		return false, websocketErr.Error()
 	}
 	return true, ""

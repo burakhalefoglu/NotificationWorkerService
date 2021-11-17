@@ -3,13 +3,16 @@ module NotificationWorkerService
 go 1.17
 
 require (
+	github.com/bshuster-repo/logrus-logstash-hook v1.0.2
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/goccy/go-json v0.7.10
 	github.com/gofiber/fiber/v2 v2.21.0
 	github.com/gofiber/websocket/v2 v2.0.12
+	github.com/golobby/container/v3 v3.0.2
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.4.0
 	github.com/segmentio/kafka-go v0.4.23
+	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	gopkg.in/confluentinc/confluent-kafka-go.v1 v1.7.0
 )

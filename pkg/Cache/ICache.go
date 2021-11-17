@@ -1,7 +1,7 @@
-package Cache
+package cache
 
 type ICache interface {
-	Set(key string, value []byte, expirationMinutes int32) (success bool, err error)
+	Set(key string, value *[]byte, expirationMinutes int32) (success bool, err error)
 	Get(key string) (value string, err error)
 	Delete(key string) (success bool, err error)
 	GetHash(key string) (*map[string]string, error)

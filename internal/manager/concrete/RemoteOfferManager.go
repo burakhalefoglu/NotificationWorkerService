@@ -1,47 +1,65 @@
 package concrete
 
 import (
+	"NotificationWorkerService/internal/IoC"
 	"NotificationWorkerService/internal/models"
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	IJsonParser "NotificationWorkerService/pkg/jsonParser"
-	"log"
+	"NotificationWorkerService/pkg/logger"
 )
 
-type RemoteOfferManager struct {
-	WebSocket IWebSocket.IWebsocket
-	JsonParser IJsonParser.IJsonParser
+type remoteOfferManager struct {
+	WebSocket *IWebSocket.IWebsocket
+	JsonParser *IJsonParser.IJsonParser
+	Logg *logger.ILog
+}
+
+func RemoteOfferManagerConstructor() *remoteOfferManager {
+	return &remoteOfferManager{WebSocket: &IoC.WebSocket,
+		JsonParser: &IoC.JsonParser,
+		Logg: &IoC.Logger}
 }
  
-func (r *RemoteOfferManager) SendMessageToClient(data *[]byte)(success bool, message string) {
+func (r *remoteOfferManager) SendMessageToClient(data *[]byte)(success bool, message string) {
 
-	remoteOfferKafkaModel := models.RemoteOfferModel{}
-	err := r.JsonParser.DecodeJson(data, &remoteOfferKafkaModel)
+	m := models.RemoteOfferModel{}
+	err := (*r.JsonParser).DecodeJson(data, &m)
 	if err != nil {
-		log.Fatal(err)
+		(*r.Logg).SendErrorLog("RemoteOfferManager", "SendMessageToClient",
+			"byte array to RemoteOfferModel", "Json Parser Decode Err: ", err)
 		return false, err.Error()
 	}
-	for _, clientId := range remoteOfferKafkaModel.ClientIdList{
+
+	defer (*r.Logg).SendInfoLog("RemoteOfferManager", "SendMessageToClient",
+		m.ClientIdList, m.ProjectId)
+
+
+	for _, clientId := range m.ClientIdList{
 
 		remoteOfferResponseModel := models.RemoteOfferDto{
-			ProductModel: remoteOfferKafkaModel.ProductModel,
-			FirstPrice: remoteOfferKafkaModel.FirstPrice,
-			LastPrice: remoteOfferKafkaModel.LastPrice,
-			OfferId: remoteOfferKafkaModel.OfferId,
-			IsGift: remoteOfferKafkaModel.IsGift,
-			GiftTexture: remoteOfferKafkaModel.GiftTexture,
-			StartTime: remoteOfferKafkaModel.StartTime,
-			FinishTime: remoteOfferKafkaModel.FinishTime,
+			ProductModel: m.ProductModel,
+			FirstPrice:   m.FirstPrice,
+			LastPrice:    m.LastPrice,
+			OfferId:      m.OfferId,
+			IsGift:       m.IsGift,
+			GiftTexture:  m.GiftTexture,
+			StartTime:    m.StartTime,
+			FinishTime:   m.FinishTime,
 
 		}
-		v, err := r.JsonParser.EncodeJson(&remoteOfferResponseModel)
+		v, err := (*r.JsonParser).EncodeJson(&remoteOfferResponseModel)
 		if err != nil{
+			(*r.Logg).SendErrorLog("RemoteOfferManager", "SendMessageToClient",
+				"RemoteOfferResponseModel to byte array", "Json Parser Encode Err: ", err)
 			return false, err.Error()
 		}
-		websocketErr := r.WebSocket.SendMessageToClient(v,
+		websocketErr := (*r.WebSocket).SendMessageToClient(v,
 			clientId,
-			remoteOfferKafkaModel.ProjectId,
+			m.ProjectId,
 			"RemoteOfferChannel")
 		if websocketErr != nil {
+			(*r.Logg).SendErrorLog("RemoteOfferManager", "SendMessageToClient",
+				"WebSocket error: ", err)
 			return false, websocketErr.Error()
 		}
 	}

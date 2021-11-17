@@ -1,4 +1,4 @@
-package Ikafka
+package kafka
 
 import (
 	"sync"

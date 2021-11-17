@@ -1,9 +1,11 @@
 package test
 
 import (
+	"NotificationWorkerService/internal/IoC"
 	"NotificationWorkerService/internal/manager/concrete"
 	"NotificationWorkerService/internal/models"
 	"NotificationWorkerService/pkg/jsonParser/gojson"
+	mocklog "NotificationWorkerService/test/Mock/Log"
 	"NotificationWorkerService/test/Mock/mockwebsocket"
 	"errors"
 	"github.com/stretchr/testify/assert"
@@ -14,10 +16,15 @@ func Test_InterstitialSendMessageToClient_SuccessIsTrue(t *testing.T){
 
 	//Arrange
 	var testWebsocket = new(mockwebsocket.MockWebSocket)
-	var interstitial = concrete.InterstitialManager{
-		JsonParser:      &gojson.GoJson{},
-		WebSocket: testWebsocket,
-	}
+	var testLog = new (mocklog.MockLogger)
+	var json = gojson.GoJsonConstructor()
+
+	IoC.JsonParser = json
+	IoC.WebSocket = testWebsocket
+	IoC.Logger = testLog
+
+	var interstitialM =concrete.InterstitialManagerConstructor()
+
 	m := models.InterstitialAdModel{
 		ClientIdList:           []string{
 			"TestId1",
@@ -37,7 +44,7 @@ func Test_InterstitialSendMessageToClient_SuccessIsTrue(t *testing.T){
 			"strategy2":2,
 		},
 	}
-	responseModel, _ := interstitial.JsonParser.EncodeJson(&interstitialDto)
+	responseModel, _ := (*interstitialM.JsonParser).EncodeJson(&interstitialDto)
 
 	for _, clientId := range m.ClientIdList {
 		testWebsocket.On("SendMessageToClient",
@@ -47,10 +54,10 @@ func Test_InterstitialSendMessageToClient_SuccessIsTrue(t *testing.T){
 			"InterstitialAdChannel").Return(nil)
 
 	}
-	rawModel, _ := interstitial.JsonParser.EncodeJson(&m)
+	rawModel, _ := (*interstitialM.JsonParser).EncodeJson(&m)
 
 	//Act
-	success, err:= interstitial.SendMessageToClient(rawModel)
+	success, err:= interstitialM.SendMessageToClient(rawModel)
 
 
 	//Assert
@@ -63,10 +70,15 @@ func Test_InterstitialSendMessageToClient_SuccessIsFalse(t *testing.T){
 
 	//Arrange
 	var testWebsocket = new(mockwebsocket.MockWebSocket)
-	var interstitial = concrete.InterstitialManager{
-		JsonParser:      &gojson.GoJson{},
-		WebSocket: testWebsocket,
-	}
+	var testLog = new (mocklog.MockLogger)
+	var json = gojson.GoJsonConstructor()
+
+	IoC.JsonParser = json
+	IoC.WebSocket = testWebsocket
+	IoC.Logger = testLog
+
+	var interstitialM =concrete.InterstitialManagerConstructor()
+
 	m := models.InterstitialAdModel{
 		ClientIdList:           []string{
 			"TestId1",
@@ -86,7 +98,7 @@ func Test_InterstitialSendMessageToClient_SuccessIsFalse(t *testing.T){
 			"strategy2":2,
 		},
 	}
-	responseModel, _ := interstitial.JsonParser.EncodeJson(&interstitialDto)
+	responseModel, _ := (*interstitialM.JsonParser).EncodeJson(&interstitialDto)
 
 	for _, clientId := range m.ClientIdList {
 		testWebsocket.On("SendMessageToClient",
@@ -96,10 +108,10 @@ func Test_InterstitialSendMessageToClient_SuccessIsFalse(t *testing.T){
 			"InterstitialAdChannel").Return(errors.New("fakeError"))
 
 	}
-	rawModel, _ := interstitial.JsonParser.EncodeJson(&m)
+	rawModel, _ := (*interstitialM.JsonParser).EncodeJson(&m)
 
 	//Act
-	success, err:= interstitial.SendMessageToClient(rawModel)
+	success, err:= interstitialM.SendMessageToClient(rawModel)
 
 
 	//Assert

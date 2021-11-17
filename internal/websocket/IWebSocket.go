@@ -1,4 +1,4 @@
-package IwebSocket
+package websocket
 
 import "sync"
 
@@ -22,6 +22,6 @@ type IWebsocket interface {
 		channelName string) error
 }
 
-func ListenServer(d IWebsocket, group *sync.WaitGroup) {
-	d.ListenServer(group)
+func ListenServer(d *IWebsocket, group *sync.WaitGroup) {
+	(*d).ListenServer(group)
 }

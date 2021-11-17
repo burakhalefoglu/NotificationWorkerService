@@ -1,9 +1,11 @@
 package test
 
 import (
+	"NotificationWorkerService/internal/IoC"
 	"NotificationWorkerService/internal/manager/concrete"
 	"NotificationWorkerService/internal/models"
 	"NotificationWorkerService/pkg/jsonParser/gojson"
+	"NotificationWorkerService/test/Mock/Log"
 	"NotificationWorkerService/test/Mock/mockwebsocket"
 	"errors"
 	"github.com/stretchr/testify/assert"
@@ -14,10 +16,15 @@ func Test_SendMessageToClient_SuccessIsTrue(t *testing.T){
 
 	//Arrange
 	var testWebsocket = new(mockwebsocket.MockWebSocket)
-	var churnBlockerManager = concrete.ChurnBlockerManager{
-		JsonParser:      &gojson.GoJson{},
-		WebSocket: testWebsocket,
-	}
+	var testLog = new (mocklog.MockLogger)
+	var json = gojson.GoJsonConstructor()
+
+	IoC.JsonParser = json
+	IoC.WebSocket = testWebsocket
+	IoC.Logger = testLog
+
+	var churnBlockerManager = concrete.ChurnBlockerManagerConstructor()
+
 	m := models.ChurnBlockerResultModel{
 		ClientId:                "TestClientId",
 		ProjectId:               "TestProjectId",
@@ -28,14 +35,14 @@ func Test_SendMessageToClient_SuccessIsTrue(t *testing.T){
 		CenterOfDifficultyLevel: m.CenterOfDifficultyLevel,
 		RangeCount:              m.RangeCount,
 	}
-	responseModel, _ := churnBlockerManager.JsonParser.EncodeJson(&difficultyServerResultResponseModel)
+	responseModel, _ := (*churnBlockerManager.JsonParser).EncodeJson(&difficultyServerResultResponseModel)
 	testWebsocket.On("SendMessageToClient",
 		responseModel,
 		"TestClientId",
 		"TestProjectId",
 		"ChurnBlockerResultChannel").Return(nil)
 
-	rawModel, _ := churnBlockerManager.JsonParser.EncodeJson(&m)
+	rawModel, _ := (*churnBlockerManager.JsonParser).EncodeJson(&m)
 
 	//Act
 	success, err:= churnBlockerManager.SendMessageToClient(rawModel)
@@ -50,10 +57,15 @@ func Test_SendMessageToClient_SuccessIsTrue(t *testing.T){
 func Test_SendMessageToClient_SuccessIsFalse(t *testing.T){
 	//Arrange
 	var testWebsocket = new(mockwebsocket.MockWebSocket)
-	var churnBlockerManager = concrete.ChurnBlockerManager{
-		JsonParser:      &gojson.GoJson{},
-		WebSocket: testWebsocket,
-	}
+	var testLog = new (mocklog.MockLogger)
+	var json = gojson.GoJsonConstructor()
+
+	IoC.JsonParser = json
+	IoC.WebSocket = testWebsocket
+	IoC.Logger = testLog
+
+	var churnBlockerManager = concrete.ChurnBlockerManagerConstructor()
+
 	m := models.ChurnBlockerResultModel{
 		ClientId:                "TestClientId",
 		ProjectId:               "TestProjectId",
@@ -64,14 +76,14 @@ func Test_SendMessageToClient_SuccessIsFalse(t *testing.T){
 		CenterOfDifficultyLevel: m.CenterOfDifficultyLevel,
 		RangeCount:              m.RangeCount,
 	}
-	responseModel, _ := churnBlockerManager.JsonParser.EncodeJson(&difficultyServerResultResponseModel)
+	responseModel, _ := (*churnBlockerManager.JsonParser).EncodeJson(&difficultyServerResultResponseModel)
 	testWebsocket.On("SendMessageToClient",
 		responseModel,
 		"TestClientId",
 		"TestProjectId",
 		"ChurnBlockerResultChannel").Return(errors.New("FakeError"))
 
-	rawModel, _ := churnBlockerManager.JsonParser.EncodeJson(&m)
+	rawModel, _ := (*churnBlockerManager.JsonParser).EncodeJson(&m)
 
 	//Act
 	success, err:= churnBlockerManager.SendMessageToClient(rawModel)

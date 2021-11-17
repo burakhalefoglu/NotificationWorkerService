@@ -1,9 +1,9 @@
 package RedisV8
 
 import (
+	"NotificationWorkerService/pkg/logger"
 	"context"
 	"github.com/go-redis/redis/v8"
-	"github.com/joho/godotenv"
 	"os"
 	"time"
 )
@@ -12,19 +12,26 @@ type redisCache struct {
 	Client *redis.Client
 }
 
-func ConnectRedis() *redis.Client{
-	godotenv.Load()
-	return redis.NewClient(&redis.Options{
+func RedisCacheConstructor(log *logger.ILog) *redisCache {
+	return &redisCache{Client: getClient(log)}
+}
+
+func getClient(log *logger.ILog) *redis.Client{
+	client := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_CONN"),
-		Password:  os.Getenv("REDIS_PASS"),
+		Password: os.Getenv("REDIS_PASS"),
 		DB:       0,
 	})
+	func(log *logger.ILog) {
+		_, err := client.Ping(context.Background()).Result()
+		if err != nil {
+			(*log).SendPanicLog("RedisConnection", "ConnectRedis", err)
+		}
+	}(log)
 
+	return client
 }
 
-var RedisV8 = redisCache{
-	Client: ConnectRedis(),
-}
 
 func (r *redisCache) Set(key string, value *[]byte, expirationMinutes int32) (success bool, err error){
 

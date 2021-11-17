@@ -5,11 +5,14 @@ import (
 	"github.com/goccy/go-json"
 )
 
-type GoJson struct {
-
+type goJson struct {
 }
 
-func (g *GoJson) EncodeJson(v interface{}) (*[]byte, error) {
+func GoJsonConstructor() *goJson {
+	return &goJson{}
+}
+
+func (g *goJson) EncodeJson(v interface{}) (*[]byte, error) {
 	value, marshalErr := json.Marshal(&v)
 	if marshalErr != nil {
 		return nil, errors.New("Can not marshal Value")
@@ -17,7 +20,7 @@ func (g *GoJson) EncodeJson(v interface{}) (*[]byte, error) {
 	return &value, nil
 }
 
-func (g *GoJson) DecodeJson(message *[]byte, v interface{}) error {
+func (g *goJson) DecodeJson(message *[]byte, v interface{}) error {
 	unmarshalErr := json.Unmarshal(*message, &v)
 	if unmarshalErr != nil {
 		return errors.New("Can not unmarshal JSON")

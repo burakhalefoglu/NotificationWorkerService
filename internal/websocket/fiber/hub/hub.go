@@ -1,9 +1,7 @@
 package hub
 
 import (
-	"fmt"
 	"github.com/gofiber/websocket/v2"
-	"log"
 )
 
 type Channel struct {
@@ -29,11 +27,6 @@ type Customer struct {
 func (ps *Channel) AddClient(client Client) {
 
 	ps.Clients = append(ps.Clients, client)
-	fmt.Println("adding new client to the list", client.Id, len(ps.Clients))
-	payload := []byte("Hello Client ID:" +
-		client.Id)
-
-	client.Connection.WriteMessage(1, payload)
 }
 
  
@@ -43,7 +36,6 @@ func (ps *Channel) RemoveClient(client Client) {
 
 		if c.Id == client.Id {
 			ps.Clients = append(ps.Clients[:index], ps.Clients[index+1:]...)
-			log.Println(c.Id ,"is removed")
 		}
 
 	}
@@ -52,9 +44,6 @@ func (ps *Channel) RemoveClient(client Client) {
 func (ps *Channel) AddCustomer(customer Customer) {
 
 	ps.Customers = append(ps.Customers, customer)
-	payload := []byte("Hello Client ID:" +
-		customer.Id)
-	customer.Connection.WriteMessage(1, payload)
 }
 
 
@@ -64,7 +53,6 @@ func (ps *Channel) RemoveCustomer(customer Customer) {
 
 		if c.Id == customer.Id {
 			ps.Customers = append(ps.Customers[:index], ps.Customers[index+1:]...)
-			log.Println(c.Id ,"is removed")
 		}
 
 	}

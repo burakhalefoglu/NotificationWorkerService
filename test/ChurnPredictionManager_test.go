@@ -1,9 +1,11 @@
 package test
 
 import (
+	"NotificationWorkerService/internal/IoC"
 	"NotificationWorkerService/internal/manager/concrete"
 	"NotificationWorkerService/internal/models"
 	"NotificationWorkerService/pkg/jsonParser/gojson"
+	mocklog "NotificationWorkerService/test/Mock/Log"
 	"NotificationWorkerService/test/Mock/mockwebsocket"
 	"errors"
 	"github.com/stretchr/testify/assert"
@@ -14,10 +16,15 @@ func Test_ChurnPredictionSendMessageToClient_SuccessIsTrue(t *testing.T){
 
 	//Arrange
 	var testWebsocket = new(mockwebsocket.MockWebSocket)
-	var churnPredcition = concrete.ChurnPredictionManager{
-		JsonParser:      &gojson.GoJson{},
-		WebSocket: testWebsocket,
-	}
+	var testLog = new (mocklog.MockLogger)
+	var json = gojson.GoJsonConstructor()
+
+	IoC.JsonParser = json
+	IoC.WebSocket = testWebsocket
+	IoC.Logger = testLog
+
+	var churnPrediction = concrete.ChurnPredictionManagerConstructor()
+
 	m := models.ChurnPredictionResultModel{
 		ClientId:                "TestClientId",
 		ProjectId:               "TestProjectId",
@@ -28,17 +35,17 @@ func Test_ChurnPredictionSendMessageToClient_SuccessIsTrue(t *testing.T){
 		CenterOfDifficultyLevel: m.CenterOfDifficultyLevel,
 		RangeCount:              m.RangeCount,
 	}
-	responseModel, _ := churnPredcition.JsonParser.EncodeJson(&difficultyServerResultResponseModel)
+	responseModel, _ := (*churnPrediction.JsonParser).EncodeJson(&difficultyServerResultResponseModel)
 	testWebsocket.On("SendMessageToClient",
 		responseModel,
 		"TestClientId",
 		"TestProjectId",
 		"ChurnPredictionResultChannel").Return(nil)
 
-	rawModel, _ := churnPredcition.JsonParser.EncodeJson(&m)
+	rawModel, _ := (*churnPrediction.JsonParser).EncodeJson(&m)
 
 	//Act
-	success, err:= churnPredcition.SendMessageToClient(rawModel)
+	success, err:= churnPrediction.SendMessageToClient(rawModel)
 
 
 	//Assert
@@ -50,10 +57,15 @@ func Test_ChurnPredictionSendMessageToClient_SuccessIsTrue(t *testing.T){
 func Test_ChurnPredictionSendMessageToClient_SuccessIsFalse(t *testing.T){
 	//Arrange
 	var testWebsocket = new(mockwebsocket.MockWebSocket)
-	var churnPrediction = concrete.ChurnPredictionManager{
-		JsonParser:      &gojson.GoJson{},
-		WebSocket: testWebsocket,
-	}
+	var testLog = new (mocklog.MockLogger)
+	var json = gojson.GoJsonConstructor()
+
+	IoC.JsonParser = json
+	IoC.WebSocket = testWebsocket
+	IoC.Logger = testLog
+
+	var churnPrediction = concrete.ChurnPredictionManagerConstructor()
+
 	m := models.ChurnPredictionResultModel{
 		ClientId:                "TestClientId",
 		ProjectId:               "TestProjectId",
@@ -64,14 +76,14 @@ func Test_ChurnPredictionSendMessageToClient_SuccessIsFalse(t *testing.T){
 		CenterOfDifficultyLevel: m.CenterOfDifficultyLevel,
 		RangeCount:              m.RangeCount,
 	}
-	responseModel, _ := churnPrediction.JsonParser.EncodeJson(&difficultyServerResultResponseModel)
+	responseModel, _ := (*churnPrediction.JsonParser).EncodeJson(&difficultyServerResultResponseModel)
 	testWebsocket.On("SendMessageToClient",
 		responseModel,
 		"TestClientId",
 		"TestProjectId",
 		"ChurnPredictionResultChannel").Return(errors.New("FakeError"))
 
-	rawModel, _ := churnPrediction.JsonParser.EncodeJson(&m)
+	rawModel, _ :=(*churnPrediction.JsonParser).EncodeJson(&m)
 
 	//Act
 	success, err:= churnPrediction.SendMessageToClient(rawModel)
