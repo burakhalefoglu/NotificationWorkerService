@@ -1,9 +1,9 @@
 package confluent
 
 import (
+	"NotificationWorkerService/pkg/helper"
 	"NotificationWorkerService/pkg/logger"
 	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
-	"os"
 	"sync"
 )
 
@@ -17,7 +17,7 @@ func ConfluentKafkaConstructor(log *logger.ILog) *confluentKafka {
 
 func (k *confluentKafka) Produce(key *[]byte, value *[]byte, topic string) (err error) {
 
-	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": os.Getenv("KAFKA_BROKER")})
+	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": helper.ResolvePath("KAFKA_HOST", "KAFKA_PORT")})
 	if err != nil {
 		(*k.Log).SendPanicLog("ConfluentKafka", "Produce Connection Failed: ", err.Error())
 		panic(err)
@@ -38,10 +38,10 @@ func (k *confluentKafka) Produce(key *[]byte, value *[]byte, topic string) (err 
 func (k *confluentKafka) Consume(topic string, groupId string, waitGroup *sync.WaitGroup, callback func(data *[]byte) (bool, string)) {
 
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers":    os.Getenv("KAFKA_BROKER"),
-		"group.id":             groupId,
-		"auto.offset.reset":    "smallest"})
-	if err != nil{
+		"bootstrap.servers": helper.ResolvePath("KAFKA_HOST", "KAFKA_PORT"),
+		"group.id":          groupId,
+		"auto.offset.reset": "smallest"})
+	if err != nil {
 		//k.Log.SendPanicLog("ConfluentKafka", "Consumer Connection Failed: ", err.Error())
 		panic(err)
 	}
@@ -56,23 +56,22 @@ func (k *confluentKafka) Consume(topic string, groupId string, waitGroup *sync.W
 			if isSuccess {
 				go func() {
 					offsets, err := consumer.Commit()
-					if err != nil{
+					if err != nil {
 						(*k.Log).SendErrorfLog("ConfluentKafka",
-							"Consumer","%% Commit failed %v\n", offsets, err.Error())
+							"Consumer", "%% Commit failed %v\n", offsets, err.Error())
 					}
 				}()
 			}
 
 		case kafka.PartitionEOF:
 			(*k.Log).SendErrorfLog("ConfluentKafka",
-				"Consumer","%% PartitionEOF %v\n", e, err.Error())
+				"Consumer", "%% PartitionEOF %v\n", e, err.Error())
 		case kafka.Error:
 			(*k.Log).SendErrorfLog("ConfluentKafka",
-				"Consumer","%% Kafka Error: %v\n", e, err.Error())
+				"Consumer", "%% Kafka Error: %v\n", e, err.Error())
 			run = false
 		default:
 		}
 	}
 	waitGroup.Done()
 }
-

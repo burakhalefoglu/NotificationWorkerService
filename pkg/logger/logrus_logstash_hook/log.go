@@ -1,10 +1,10 @@
 package logrus_logstash_hook
 
 import (
+	"NotificationWorkerService/pkg/helper"
 	"github.com/bshuster-repo/logrus-logstash-hook"
 	"github.com/sirupsen/logrus"
 	"net"
-	"os"
 )
 
 type logrusToLogstashLOG struct {
@@ -15,19 +15,18 @@ func LogrusToLogstashLOGConstructor() *logrusToLogstashLOG {
 	return &logrusToLogstashLOG{Log: connectLogstash()}
 }
 
-func connectLogstash() *logrus.Logger{
+func connectLogstash() *logrus.Logger {
 	log := logrus.New()
-	conn, err := net.Dial("tcp", os.Getenv("LOGSTASH_HOST"))
+	conn, err := net.Dial("tcp", helper.ResolvePath("LOGSTASH_HOST", "LOGSTASH_PORT"))
 	if err != nil {
 		log.Fatal(err)
 	}
 	hook := logrustash.New(conn, logrustash.DefaultFormatter(logrus.Fields{"type": "StorageWorkerService"}))
 	log.Hooks.Add(hook)
-	return  log
+	return log
 }
 
-
-func (l *logrusToLogstashLOG) SendInfoLog(parentStruct string, methodInfo string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendInfoLog(parentStruct string, methodInfo string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
@@ -35,7 +34,7 @@ func (l *logrusToLogstashLOG) SendInfoLog(parentStruct string, methodInfo string
 	ctx.Info(message)
 }
 
-func (l *logrusToLogstashLOG)SendTraceLog(parentStruct string, methodInfo string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendTraceLog(parentStruct string, methodInfo string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
@@ -43,7 +42,7 @@ func (l *logrusToLogstashLOG)SendTraceLog(parentStruct string, methodInfo string
 	ctx.Trace(message)
 }
 
-func (l *logrusToLogstashLOG)SendDebugLog(parentStruct string, methodInfo string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendDebugLog(parentStruct string, methodInfo string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
@@ -51,7 +50,7 @@ func (l *logrusToLogstashLOG)SendDebugLog(parentStruct string, methodInfo string
 	ctx.Debug(message)
 }
 
-func (l *logrusToLogstashLOG)SendWarnLog(parentStruct string, methodInfo string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendWarnLog(parentStruct string, methodInfo string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
@@ -59,7 +58,7 @@ func (l *logrusToLogstashLOG)SendWarnLog(parentStruct string, methodInfo string,
 	ctx.Warn(message)
 }
 
-func (l *logrusToLogstashLOG)SendErrorLog(parentStruct string, methodInfo string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendErrorLog(parentStruct string, methodInfo string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
@@ -67,7 +66,7 @@ func (l *logrusToLogstashLOG)SendErrorLog(parentStruct string, methodInfo string
 	ctx.Error(message)
 }
 
-func (l *logrusToLogstashLOG)SendFatalLog(parentStruct string, methodInfo string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendFatalLog(parentStruct string, methodInfo string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
@@ -75,7 +74,7 @@ func (l *logrusToLogstashLOG)SendFatalLog(parentStruct string, methodInfo string
 	ctx.Fatal(message)
 }
 
-func (l *logrusToLogstashLOG)SendPanicLog(parentStruct string, methodInfo string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendPanicLog(parentStruct string, methodInfo string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
@@ -83,15 +82,15 @@ func (l *logrusToLogstashLOG)SendPanicLog(parentStruct string, methodInfo string
 	ctx.Panic(message)
 }
 
-func (l *logrusToLogstashLOG) SendInfofLog(parentStruct string, methodInfo string, format string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendInfofLog(parentStruct string, methodInfo string, format string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
 	})
-	ctx.Infof(format,message)
+	ctx.Infof(format, message)
 }
 
-func (l *logrusToLogstashLOG)SendTracefLog(parentStruct string, methodInfo string, format string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendTracefLog(parentStruct string, methodInfo string, format string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
@@ -99,7 +98,7 @@ func (l *logrusToLogstashLOG)SendTracefLog(parentStruct string, methodInfo strin
 	ctx.Tracef(format, message)
 }
 
-func (l *logrusToLogstashLOG)SendDebugfLog(parentStruct string, methodInfo string, format string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendDebugfLog(parentStruct string, methodInfo string, format string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
@@ -107,7 +106,7 @@ func (l *logrusToLogstashLOG)SendDebugfLog(parentStruct string, methodInfo strin
 	ctx.Debugf(format, message)
 }
 
-func (l *logrusToLogstashLOG)SendWarnfLog(parentStruct string, methodInfo string, format string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendWarnfLog(parentStruct string, methodInfo string, format string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
@@ -115,7 +114,7 @@ func (l *logrusToLogstashLOG)SendWarnfLog(parentStruct string, methodInfo string
 	ctx.Warnf(format, message)
 }
 
-func (l *logrusToLogstashLOG)SendErrorfLog(parentStruct string, methodInfo string, format string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendErrorfLog(parentStruct string, methodInfo string, format string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
@@ -123,7 +122,7 @@ func (l *logrusToLogstashLOG)SendErrorfLog(parentStruct string, methodInfo strin
 	ctx.Errorf(format, message)
 }
 
-func (l *logrusToLogstashLOG)SendFatalfLog(parentStruct string, methodInfo string, format string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendFatalfLog(parentStruct string, methodInfo string, format string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
@@ -131,11 +130,10 @@ func (l *logrusToLogstashLOG)SendFatalfLog(parentStruct string, methodInfo strin
 	ctx.Fatalf(format, message)
 }
 
-func (l *logrusToLogstashLOG)SendPanicfLog(parentStruct string, methodInfo string, format string, message ...interface{}){
+func (l *logrusToLogstashLOG) SendPanicfLog(parentStruct string, methodInfo string, format string, message ...interface{}) {
 	ctx := l.Log.WithFields(logrus.Fields{
 		"struct": parentStruct,
 		"method": methodInfo,
 	})
 	ctx.Panicf(format, message)
 }
-

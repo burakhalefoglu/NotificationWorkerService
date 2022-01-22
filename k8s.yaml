@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-worker-service
+  namespace: development
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: notification-worker
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-worker
+  namespace: development
+spec:
+  replicas: 7
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+      maxSurge: 2
+  selector:
+    matchLabels:
+      app: notification-worker
+  template:
+    metadata:
+      labels:
+        app: notification-worker
+    spec:
+      nodeSelector:
+        dedicated: deamond
+      containers:
+        - name: notification-worker
+          image: CONTAINER_IMAGE
+          imagePullPolicy: Always
+          env:
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: redis-host
+            - name: REDIS_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: redis-password
+            - name: KAFKA_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: kafka-host
+            - name: LOGSTASH_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: logstash-host
+          securityContext:
+            privileged: false
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+          ports:
+            - name: ws-port
+              containerPort: 8000
+              hostPort: 8000
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 5
