@@ -5,6 +5,7 @@ import (
 	"NotificationWorkerService/internal/IoC/golobby"
 	"NotificationWorkerService/internal/controller"
 	"NotificationWorkerService/internal/websocket"
+	"NotificationWorkerService/pkg/helper"
 	"github.com/joho/godotenv"
 	"log"
 	"runtime"
@@ -12,7 +13,7 @@ import (
 )
 
 func main() {
-	_ = make([]byte, 10<<30) 
+	defer helper.DeleteHealthFile()
 	runtime.MemProfileRate = 0
 	err := godotenv.Load()
 	if err != nil {
@@ -24,6 +25,5 @@ func main() {
 	var wg sync.WaitGroup
 	controller.StartListening(&IoC.Controller, &wg)
 	websocket.ListenServer(&IoC.WebSocket, &wg)
-
 	wg.Wait()
 }
