@@ -35,9 +35,9 @@ metadata:
   name: notification-worker-service
   namespace: development
 spec:
-  type: ClusterIP
   ports:
-    - name: tcp-socket
+    - name: tcp-port
+      protocol: TCP
       port: 8000
       targetPort: 8000
   selector:
