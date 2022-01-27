@@ -64,7 +64,7 @@ spec:
         app: notification-worker
     spec:
       nodeSelector:
-        dedicated: deamond
+        dedicated: spot
       containers:
         - name: notification-worker
           image: CONTAINER_IMAGE
