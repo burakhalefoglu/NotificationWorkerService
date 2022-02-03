@@ -5,19 +5,17 @@ import (
 	"NotificationWorkerService/internal/models"
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	IJsonParser "NotificationWorkerService/pkg/jsonParser"
-	"NotificationWorkerService/pkg/logger"
+	"log"
 )
 
 type projectCreationManager struct {
 	WebSocket *IWebSocket.IWebsocket
 	JsonParser *IJsonParser.IJsonParser
-	Logg *logger.ILog
 }
 
 func ProjectCreationManagerConstructor() *projectCreationManager {
 	return &projectCreationManager{WebSocket: &IoC.WebSocket,
-		JsonParser: &IoC.JsonParser,
-		Logg: &IoC.Logger}
+		JsonParser: &IoC.JsonParser}
 }
 
 func (r *projectCreationManager) SendMessageToCustomer(data *[]byte)(success bool, message string) {
@@ -25,12 +23,12 @@ func (r *projectCreationManager) SendMessageToCustomer(data *[]byte)(success boo
 	m := models.ProjectCreationResultModel{}
 	err := (*r.JsonParser).DecodeJson(data, &m)
 	if err != nil {
-		(*r.Logg).SendErrorLog("projectCreationManager", "SendMessageToCustomer",
+		log.Fatal("projectCreationManager", "SendMessageToCustomer",
 			"byte array to ProjectCreationResultModel", "Json Parser Decode Err: ", err)
 		return false, err.Error()
 	}
 
-	defer (*r.Logg).SendInfoLog("projectCreationManager", "SendMessageToCustomer",
+	defer log.Print("projectCreationManager", "SendMessageToCustomer",
 		m.CustomerId, m.ProjectId)
 
 		responseModel := models.ProjectCreationResultDto{
@@ -38,7 +36,7 @@ func (r *projectCreationManager) SendMessageToCustomer(data *[]byte)(success boo
 		}
 		v, err := (*r.JsonParser).EncodeJson(&responseModel)
 		if err != nil{
-			(*r.Logg).SendErrorLog("projectCreationManager", "SendMessageToCustomer",
+			log.Fatal("projectCreationManager", "SendMessageToCustomer",
 				"ProjectCreationResultDto to byte array", "Json Parser Encode Err: ", err)
 			return false, err.Error()
 		}
@@ -47,7 +45,7 @@ func (r *projectCreationManager) SendMessageToCustomer(data *[]byte)(success boo
 		m.ProjectId,
 		"ProjectCreationResultChannel")
 	if websocketErr != nil {
-		(*r.Logg).SendErrorLog("projectCreationManager", "SendMessageToCustomer",
+		log.Fatal("projectCreationManager", "SendMessageToCustomer",
 			"WebSocket error: ", err)
 		return false, websocketErr.Error()
 	}

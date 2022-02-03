@@ -7,7 +7,6 @@ import (
 	cache "NotificationWorkerService/pkg/Cache"
 	jsonParser "NotificationWorkerService/pkg/jsonParser"
 	"NotificationWorkerService/pkg/kafka"
-	"NotificationWorkerService/pkg/logger"
 )
 
 type IContainer interface {
@@ -19,7 +18,6 @@ func InjectContainers(container IContainer){
 }
 
 var RedisCache cache.ICache
-var Logger logger.ILog
 var Kafka kafka.IKafka
 var JsonParser jsonParser.IJsonParser
 

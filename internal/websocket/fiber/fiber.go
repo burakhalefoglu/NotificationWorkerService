@@ -1,20 +1,18 @@
 package fiber
 
 import (
-	"NotificationWorkerService/internal/IoC"
 	"NotificationWorkerService/internal/websocket/fiber/ChannelWorker/ClientWorker"
 	"NotificationWorkerService/internal/websocket/fiber/ChannelWorker/CustomerWorker"
 	"NotificationWorkerService/internal/websocket/fiber/hub"
 	"NotificationWorkerService/pkg/helper"
-	"NotificationWorkerService/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
+	"log"
 	"sync"
 )
 
 type fiberWebsocket struct {
 	Channel map[string]*hub.Channel
-	logg    *logger.ILog
 }
 
 func FiberWebsocketConstructor() *fiberWebsocket {
@@ -24,7 +22,7 @@ func FiberWebsocketConstructor() *fiberWebsocket {
 		"ChurnPredictionResultChannel": &ChurnPredictionResultChannel,
 		"ChurnBlockerResultChannel":    &ChurnBlockerResultChannel,
 		"ProjectCreationResultChannel": &ProjectCreationResultChannel,
-	}, logg: &IoC.Logger}
+	}}
 }
 
 var RemoteOfferChannelModel = hub.Channel{
@@ -61,24 +59,19 @@ func (f *fiberWebsocket) ListenServer(wgGroup *sync.WaitGroup) {
 	wgGroup.Add(5)
 	go ClientWorker.StartClientListener(wgGroup,
 		app,
-		f.Channel["RemoteOfferChannel"],
-		f.logg)
+		f.Channel["RemoteOfferChannel"])
 	go ClientWorker.StartClientListener(wgGroup,
 		app,
-		f.Channel["InterstitialAdChannel"],
-		f.logg)
+		f.Channel["InterstitialAdChannel"])
 	go ClientWorker.StartClientListener(wgGroup,
 		app,
-		f.Channel["ChurnPredictionResultChannel"],
-		f.logg)
+		f.Channel["ChurnPredictionResultChannel"])
 	go ClientWorker.StartClientListener(wgGroup,
 		app,
-		f.Channel["ChurnBlockerResultChannel"],
-		f.logg)
+		f.Channel["ChurnBlockerResultChannel"])
 	go CustomerWorker.StartCustomerListener(wgGroup,
 		app,
-		f.Channel["ProjectCreationResultChannel"],
-		f.logg)
+		f.Channel["ProjectCreationResultChannel"])
 
 	if err := app.Listen(helper.ResolvePath("WEBSOCKET_HOST", "WEBSOCKET_PORT")); err != nil {
 		panic(err)
@@ -93,7 +86,7 @@ func (f *fiberWebsocket) SendMessageToClient(message *[]byte, clientId string,
 		if v.Id == clientId && v.ProjectId == projectId {
 			err := v.Connection.WriteMessage(1, *message)
 			if err != nil {
-				(*f.logg).SendFatalLog("FiberWebsocket", "SendMessageToClient", err)
+				log.Fatal("FiberWebsocket", "SendMessageToClient", err)
 				return err
 			}
 		}
@@ -109,7 +102,7 @@ func (f *fiberWebsocket) SendMessageToAllClient(message *[]byte,
 		if v.ProjectId == projectId {
 			err := v.Connection.WriteMessage(1, *message)
 			if err != nil {
-				(*f.logg).SendFatalLog("FiberWebsocket", "SendMessageToAllClient", err)
+				log.Fatal("FiberWebsocket", "SendMessageToAllClient", err)
 				return err
 			}
 		}
@@ -125,7 +118,7 @@ func (f *fiberWebsocket) SendMessageToCustomer(message *[]byte, customerId strin
 		if v.Id == customerId && v.ProjectId == projectId {
 			err := v.Connection.WriteMessage(2, *message)
 			if err != nil {
-				(*f.logg).SendFatalLog("FiberWebsocket", "SendMessageToCustomer", err)
+				log.Fatal("FiberWebsocket", "SendMessageToCustomer", err)
 				return err
 			}
 		}
@@ -141,7 +134,7 @@ func (f *fiberWebsocket) SendMessageToAllCustomer(message *[]byte,
 		if v.ProjectId == projectId {
 			err := v.Connection.WriteMessage(2, *message)
 			if err != nil {
-				(*f.logg).SendFatalLog("FiberWebsocket", "SendMessageToAllCustomer", err)
+				log.Fatal("FiberWebsocket", "SendMessageToAllCustomer", err)
 				return err
 			}
 		}

@@ -14,8 +14,6 @@ import (
 	"NotificationWorkerService/pkg/jsonParser/gojson"
 	"NotificationWorkerService/pkg/kafka"
 	"NotificationWorkerService/pkg/kafka/kafkago"
-	"NotificationWorkerService/pkg/logger"
-	"NotificationWorkerService/pkg/logger/logrus_logstash_hook"
 	"github.com/golobby/container/v3"
 )
 
@@ -26,7 +24,6 @@ func InjectionConstructor() *golobbyInjection {
 }
 
 func (i *golobbyInjection) Inject(){
-	injectLogger()
 	injectKafka()
 	injectJsonParser()
 	injectCache()
@@ -55,7 +52,7 @@ func injectJsonParser() {
 
 func injectKafka() {
 	if err :=container.Transient(func() kafka.IKafka {
-		return kafkago.KafkaGoConstructor(&IoC.Logger)
+		return kafkago.KafkaGoConstructor()
 	}); err != nil{
 		panic(err)
 	}
@@ -64,20 +61,9 @@ func injectKafka() {
 	}
 }
 
-func injectLogger() {
-	if err := container.Transient(func() logger.ILog {
-		return logrus_logstash_hook.LogrusToLogstashLOGConstructor()
-	}); err != nil{
-		panic(err)
-	}
-	if err := container.Resolve(&IoC.Logger); err != nil{
-		panic(err)
-	}
-}
-
 func injectCache() {
 	if err := container.Transient(func() cache.ICache {
-		return RedisCacheV8.RedisCacheConstructor(&IoC.Logger)
+		return RedisCacheV8.RedisCacheConstructor()
 	}); err != nil{
 		panic(err)
 	}

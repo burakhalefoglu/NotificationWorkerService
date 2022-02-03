@@ -5,31 +5,29 @@ import (
 	"NotificationWorkerService/internal/models"
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	JsonParser "NotificationWorkerService/pkg/jsonParser"
-	"NotificationWorkerService/pkg/logger"
+	"log"
 )
 
 type churnPredictionManager struct {
 	WebSocket *IWebSocket.IWebsocket
 	JsonParser *JsonParser.IJsonParser
-	Logg *logger.ILog
 }
 
 func ChurnPredictionManagerConstructor() *churnPredictionManager {
 	return &churnPredictionManager{WebSocket: &IoC.WebSocket,
-		JsonParser: &IoC.JsonParser,
-		Logg: &IoC.Logger}
+		JsonParser: &IoC.JsonParser}
 }
 
 func (c *churnPredictionManager) SendMessageToClient(data *[]byte)(success bool, message string)  {
 	m := models.ChurnPredictionResultModel{}
 	err := (*c.JsonParser).DecodeJson(data, &m)
 	if err != nil {
-		(*c.Logg).SendErrorLog("ChurnPredictionManager", "SendMessageToClient",
+		log.Fatal("ChurnPredictionManager", "SendMessageToClient",
 			"byte array to ChurnPredictionResultModel", "Json Parser Decode Err: ", err)
 		return false, err.Error()
 	}
 
-	defer (*c.Logg).SendInfoLog("ChurnPredictionManager", "SendMessageToClient",
+	defer log.Print("ChurnPredictionManager", "SendMessageToClient",
 		m.ClientId, m.ProjectId)
 
 	difficultyServerResultResponseModel := models.ChurnPredictionResultDto{
@@ -39,7 +37,7 @@ func (c *churnPredictionManager) SendMessageToClient(data *[]byte)(success bool,
 
 	v, err :=(*c.JsonParser).EncodeJson(&difficultyServerResultResponseModel)
 		if err != nil{
-			(*c.Logg).SendErrorLog("ChurnPredictionManager", "SendMessageToClient",
+			log.Fatal("ChurnPredictionManager", "SendMessageToClient",
 				"difficultyServerResultResponseModel to byte array", "Json Parser Encode Err: ", err)
 			return false, err.Error()
 		}
@@ -48,7 +46,7 @@ func (c *churnPredictionManager) SendMessageToClient(data *[]byte)(success bool,
 		m.ProjectId,
 		"ChurnPredictionResultChannel")
 	if websocketErr != nil {
-		(*c.Logg).SendErrorLog("ChurnPredictionManager", "SendMessageToClient",
+		log.Fatal("ChurnPredictionManager", "SendMessageToClient",
 			"WebSocket error: ", err)
 		return false, websocketErr.Error()
 	}

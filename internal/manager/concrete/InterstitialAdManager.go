@@ -5,20 +5,18 @@ import (
 	"NotificationWorkerService/internal/models"
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	IJsonParser "NotificationWorkerService/pkg/jsonParser"
-	"NotificationWorkerService/pkg/logger"
+	"log"
 )
 
 
 type interstitialManager struct {
 	WebSocket  *IWebSocket.IWebsocket
 	JsonParser *IJsonParser.IJsonParser
-	Logg *logger.ILog
 }
 
 func InterstitialManagerConstructor() *interstitialManager {
 	return &interstitialManager{WebSocket: &IoC.WebSocket,
-		JsonParser: &IoC.JsonParser,
-		Logg: &IoC.Logger}
+		JsonParser: &IoC.JsonParser}
 }
 
 
@@ -27,12 +25,12 @@ func (i *interstitialManager) SendMessageToClient(data *[]byte)(success bool, me
 	m := models.InterstitialAdModel{}
 	err := (*i.JsonParser).DecodeJson(data, &m)
 	if err != nil {
-		(*i.Logg).SendErrorLog("InterstitialManager", "SendMessageToClient",
+		log.Fatal("InterstitialManager", "SendMessageToClient",
 			"byte array to InterstitialAdModel", "Json Parser Decode Err: ", err)
 		return false, err.Error()
 	}
 
-	defer (*i.Logg).SendInfoLog("InterstitialManager", "SendMessageToClient",
+	defer log.Print("InterstitialManager", "SendMessageToClient",
 		m.ClientIdList, m.ProjectId)
 
 	for _, clientId := range m.ClientIdList{
@@ -43,7 +41,7 @@ func (i *interstitialManager) SendMessageToClient(data *[]byte)(success bool, me
 		}
 		v, err := (*i.JsonParser).EncodeJson(&interstitialAdResponseModel)
 		if err != nil{
-			(*i.Logg).SendErrorLog("InterstitialManager", "SendMessageToClient",
+			log.Fatal("InterstitialManager", "SendMessageToClient",
 				"interstitialAdResponseModel to byte array", "Json Parser Encode Err: ", err)
 			return false, err.Error()
 		}
@@ -52,7 +50,7 @@ func (i *interstitialManager) SendMessageToClient(data *[]byte)(success bool, me
 			m.ProjectId,
 			"InterstitialAdChannel")
 		if websocketErr != nil {
-			(*i.Logg).SendErrorLog("InterstitialManager", "SendMessageToClient",
+			log.Fatal("InterstitialManager", "SendMessageToClient",
 				"WebSocket error: ", err)
 			return false, websocketErr.Error()
 		}

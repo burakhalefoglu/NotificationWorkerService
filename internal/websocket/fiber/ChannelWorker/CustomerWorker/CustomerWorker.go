@@ -2,9 +2,9 @@ package CustomerWorker
 
 import (
 	"NotificationWorkerService/internal/websocket/fiber/hub"
-	"NotificationWorkerService/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
+	"log"
 	"sync"
 )
 
@@ -12,7 +12,7 @@ import (
 
 func StartCustomerListener(wgGroup *sync.WaitGroup,
 	app *fiber.App,
-ch *hub.Channel, logg *logger.ILog) {
+ch *hub.Channel) {
 
 	app.Get("/"+ch.Name, websocket.New(func(c *websocket.Conn) {
 		var clientId = c.Query("clientId")
@@ -24,7 +24,7 @@ ch *hub.Channel, logg *logger.ILog) {
 			Connection: c,
 		}
 		ch.AddCustomer(customer)
-		(*logg).SendInfoLog("CustomerWorker", "StartCustomerListener",
+		log.Print("CustomerWorker", "StartCustomerListener",
 			"New Customer is connected, total: ",customer.Id ,len(ch.Clients))
 		var (
 			_   int //message type
@@ -34,7 +34,7 @@ ch *hub.Channel, logg *logger.ILog) {
 		for {
 			if _, _, err = c.ReadMessage(); err != nil {
 				ch.RemoveCustomer(customer)
-				(*logg).SendInfoLog("CustomerWorker", "StartCustomerListener",
+				log.Print("CustomerWorker", "StartCustomerListener",
 					"Customer is disconnected: " ,err)
 				break
 			}
