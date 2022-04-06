@@ -5,7 +5,9 @@ import (
 	"NotificationWorkerService/internal/models"
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	jsonParser "NotificationWorkerService/pkg/jsonParser"
-	"log"
+
+	logger "github.com/appneuroncompany/light-logger"
+	"github.com/appneuroncompany/light-logger/clogger"
 )
 
 type churnBlockerManager struct {
@@ -18,26 +20,28 @@ func ChurnBlockerManagerConstructor() *churnBlockerManager {
 		JsonParser: &IoC.JsonParser}
 }
 
-func (c *churnBlockerManager) SendMessageToClient(data *[]byte)(success bool, message string)  {
+func (c *churnBlockerManager) SendMessageToClient(data *[]byte) (success bool, message string) {
 	m := models.ChurnBlockerResultModel{}
 	if err := (*c.JsonParser).DecodeJson(data, &m); err != nil {
-		log.Fatal("ChurnBlockerManager", "SendMessageToClient",
-			"byte array to ChurnBlockerResultModel", "Json Parser Decode Err: ", err)
-
+		clogger.Error(&logger.Messages{
+			"byte array to ChurnBlockerResultModel, Json Parser Decode Err: ": err,
+		})
 		return false, err.Error()
 	}
 
-	defer log.Print("ChurnBlockerManager", "SendMessageToClient",
-		m.ClientId, m.ProjectId)
+	defer clogger.Info(&logger.Messages{
+		"ChurnBlockerManager": m.ClientId + m.ProjectId,
+	})
 
 	difficultyServerResultResponseModel := models.ChurnBlockerResultDto{
 		CenterOfDifficultyLevel: m.CenterOfDifficultyLevel,
 		RangeCount:              m.RangeCount,
 	}
 	v, err := (*c.JsonParser).EncodeJson(&difficultyServerResultResponseModel)
-	if err != nil{
-		log.Fatal("ChurnBlockerManager", "SendMessageToClient",
-			"difficultyServerResultResponseModel to byte array", "Json Parser Encode Err: ", err)
+	if err != nil {
+		clogger.Error(&logger.Messages{
+			"difficultyServerResultResponseModel to byte array Json Parser Encode Err: ": err,
+		})
 		return false, err.Error()
 	}
 
@@ -46,11 +50,11 @@ func (c *churnBlockerManager) SendMessageToClient(data *[]byte)(success bool, me
 		m.ProjectId,
 		"ChurnBlockerResultChannel")
 	if WebSocketErr != nil {
-		log.Fatal("ChurnBlockerManager", "SendMessageToClient",
-			"WebSocket error: ", err)
+		clogger.Error(&logger.Messages{
+			"WebSocket error: ": err,
+		})
 		return false, WebSocketErr.Error()
 	}
 
 	return true, ""
 }
-

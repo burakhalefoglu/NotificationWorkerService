@@ -5,11 +5,13 @@ import (
 	"NotificationWorkerService/internal/models"
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	IJsonParser "NotificationWorkerService/pkg/jsonParser"
-	"log"
+
+	logger "github.com/appneuroncompany/light-logger"
+	"github.com/appneuroncompany/light-logger/clogger"
 )
 
 type remoteOfferManager struct {
-	WebSocket *IWebSocket.IWebsocket
+	WebSocket  *IWebSocket.IWebsocket
 	JsonParser *IJsonParser.IJsonParser
 }
 
@@ -17,22 +19,23 @@ func RemoteOfferManagerConstructor() *remoteOfferManager {
 	return &remoteOfferManager{WebSocket: &IoC.WebSocket,
 		JsonParser: &IoC.JsonParser}
 }
- 
-func (r *remoteOfferManager) SendMessageToClient(data *[]byte)(success bool, message string) {
+
+func (r *remoteOfferManager) SendMessageToClient(data *[]byte) (success bool, message string) {
 
 	m := models.RemoteOfferModel{}
 	err := (*r.JsonParser).DecodeJson(data, &m)
 	if err != nil {
-		log.Fatal("RemoteOfferManager", "SendMessageToClient",
-			"byte array to RemoteOfferModel", "Json Parser Decode Err: ", err)
+		clogger.Error(&logger.Messages{
+			"byte array to RemoteOfferModel, Json Parser Decode Err: ": err,
+		})
 		return false, err.Error()
 	}
+	defer clogger.Info(&logger.Messages{
+		"ChurnPredictionManager": m.ClientIdList,
+		"projectId":              m.ProjectId,
+	})
 
-	defer log.Print("RemoteOfferManager", "SendMessageToClient",
-		m.ClientIdList, m.ProjectId)
-
-
-	for _, clientId := range m.ClientIdList{
+	for _, clientId := range m.ClientIdList {
 
 		remoteOfferResponseModel := models.RemoteOfferDto{
 			ProductModel: m.ProductModel,
@@ -43,12 +46,12 @@ func (r *remoteOfferManager) SendMessageToClient(data *[]byte)(success bool, mes
 			GiftTexture:  m.GiftTexture,
 			StartTime:    m.StartTime,
 			FinishTime:   m.FinishTime,
-
 		}
 		v, err := (*r.JsonParser).EncodeJson(&remoteOfferResponseModel)
-		if err != nil{
-			log.Fatal("RemoteOfferManager", "SendMessageToClient",
-				"RemoteOfferResponseModel to byte array", "Json Parser Encode Err: ", err)
+		if err != nil {
+			clogger.Error(&logger.Messages{
+				"RemoteOfferResponseModel to byte array Json Parser Encode Err: ": err,
+			})
 			return false, err.Error()
 		}
 		websocketErr := (*r.WebSocket).SendMessageToClient(v,
@@ -56,8 +59,9 @@ func (r *remoteOfferManager) SendMessageToClient(data *[]byte)(success bool, mes
 			m.ProjectId,
 			"RemoteOfferChannel")
 		if websocketErr != nil {
-			log.Fatal("RemoteOfferManager", "SendMessageToClient",
-				"WebSocket error: ", err)
+			clogger.Error(&logger.Messages{
+				"WebSocket error: ": err,
+			})
 			return false, websocketErr.Error()
 		}
 	}

@@ -6,10 +6,12 @@ import (
 	"NotificationWorkerService/internal/controller"
 	"NotificationWorkerService/internal/websocket"
 	"NotificationWorkerService/pkg/helper"
-	"github.com/joho/godotenv"
 	"log"
 	"runtime"
 	"sync"
+
+	logger "github.com/appneuroncompany/light-logger"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -21,6 +23,7 @@ func main() {
 		return
 	}
 	IoC.InjectContainers(golobby.InjectionConstructor())
+	logger.Log.App = "NotificationWorkerService"
 
 	var wg sync.WaitGroup
 	controller.StartListening(&IoC.Controller, &wg)

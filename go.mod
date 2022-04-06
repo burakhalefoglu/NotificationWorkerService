@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/go-redis/redis/v8 v8.11.4
-	github.com/goccy/go-json v0.7.10
+	github.com/goccy/go-json v0.9.4
 	github.com/gofiber/fiber/v2 v2.21.0
 	github.com/gofiber/websocket/v2 v2.0.12
 	github.com/golobby/container/v3 v3.0.2
@@ -17,6 +17,7 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.2 // indirect
+	github.com/appneuroncompany/light-logger v0.0.0-20220208161539-b1006491365e
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/confluentinc/confluent-kafka-go v1.7.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
