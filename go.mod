@@ -3,7 +3,7 @@ module NotificationWorkerService
 go 1.18
 
 require (
-	github.com/appneuroncompany/light-logger v0.0.0-20220406104044-fc85d1744881
+	github.com/appneuroncompany/light-logger v0.0.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/goccy/go-json v0.9.6
 	github.com/gofiber/fiber/v2 v2.31.0
