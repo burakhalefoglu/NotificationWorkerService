@@ -6,7 +6,6 @@ import (
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	jsonParser "NotificationWorkerService/pkg/jsonParser"
 
-	logger "github.com/appneuroncompany/light-logger"
 	"github.com/appneuroncompany/light-logger/clogger"
 )
 
@@ -23,13 +22,13 @@ func ChurnBlockerManagerConstructor() *churnBlockerManager {
 func (c *churnBlockerManager) SendMessageToClient(data *[]byte) (success bool, message string) {
 	m := models.ChurnBlockerResultModel{}
 	if err := (*c.JsonParser).DecodeJson(data, &m); err != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"byte array to ChurnBlockerResultModel, Json Parser Decode Err: ": err,
 		})
 		return false, err.Error()
 	}
 
-	defer clogger.Info(&logger.Messages{
+	defer clogger.Info(&map[string]interface{}{
 		"ChurnBlockerManager": m.ClientId + m.ProjectId,
 	})
 
@@ -39,7 +38,7 @@ func (c *churnBlockerManager) SendMessageToClient(data *[]byte) (success bool, m
 	}
 	v, err := (*c.JsonParser).EncodeJson(&difficultyServerResultResponseModel)
 	if err != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"difficultyServerResultResponseModel to byte array Json Parser Encode Err: ": err,
 		})
 		return false, err.Error()
@@ -50,7 +49,7 @@ func (c *churnBlockerManager) SendMessageToClient(data *[]byte) (success bool, m
 		m.ProjectId,
 		"ChurnBlockerResultChannel")
 	if WebSocketErr != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"WebSocket error: ": err,
 		})
 		return false, WebSocketErr.Error()

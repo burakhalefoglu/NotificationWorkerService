@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	logger "github.com/appneuroncompany/light-logger"
 	"github.com/appneuroncompany/light-logger/clogger"
 	"github.com/go-redis/redis/v8"
 )
@@ -23,28 +22,27 @@ func RedisCacheConstructor() *redisCache {
 func createClient() *redis.Client {
 	client := redis.NewClient(&redis.Options{
 		Addr:     helper.ResolvePath("REDIS_HOST", "REDIS_PORT"),
-		Password: os.Getenv("REDIS_PASS"), // no password set
-		DB:       0,                       // use default DB
+		Password: os.Getenv("REDIS_PASS"),
+		DB:       0,
 	})
 	func() {
 		_, err := client.Ping(context.Background()).Result()
 		if err != nil {
-			clogger.Error(&logger.Messages{
+			clogger.Error(&map[string]interface{}{
 				"redisCache RedisConnection ConnectRedis error: ": err,
 			})
-			//log.Fatal("RedisConnection", "ConnectRedis", err)
 		}
 	}()
 
 	return client
 }
 
-func (r *redisCache) Set(key string, value interface{}, expirationMinutes int32) (success bool, err error) {
+func (r *redisCache) Set(key string, value *[]byte, expirationMinutes int32) (success bool, err error) {
 
 	expMinutes := time.Duration(expirationMinutes) * time.Minute
 	var result = r.Client.Set(context.Background(), key, value, expMinutes)
 	if result.Err() != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"redisCache Set error: ": result.Err(),
 		})
 		return false, result.Err()
@@ -59,7 +57,7 @@ func (r *redisCache) Get(key string) (value string, err error) {
 		return "", errors.New("null data error")
 	}
 	if result.Err() != nil && result.Err() != redis.Nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"redisCache Get error: ": result.Err(),
 		})
 		return "", err
@@ -71,7 +69,7 @@ func (r *redisCache) Delete(key string) (success bool, err error) {
 
 	var result = r.Client.Del(context.Background(), key)
 	if result.Err() != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"redisCache Delete error: ": result.Err(),
 		})
 		return false, err
@@ -86,7 +84,7 @@ func (r *redisCache) GetHash(key string) (*map[string]string, error) {
 		return nil, errors.New("null data error")
 	}
 	if result.Err() != nil && result.Err() != redis.Nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"redisCache GetHash error: ": result.Err(),
 		})
 		return nil, result.Err()
@@ -99,7 +97,7 @@ func (r *redisCache) GetHash(key string) (*map[string]string, error) {
 func (r *redisCache) AddHash(key string, value *map[string]interface{}) (success bool, err error) {
 	result := r.Client.HMSet(context.Background(), key, value)
 	if result.Err() != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"redisCache AddHash error: ": result.Err(),
 		})
 		return false, result.Err()
@@ -110,7 +108,7 @@ func (r *redisCache) AddHash(key string, value *map[string]interface{}) (success
 func (r *redisCache) DeleteHashElement(key string, fields ...string) (success bool, err error) {
 	result := r.Client.HDel(context.Background(), key, fields...)
 	if result.Err() != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"redisCache DeleteHashElement error: ": result.Err(),
 		})
 		return false, result.Err()
@@ -121,7 +119,7 @@ func (r *redisCache) DeleteHashElement(key string, fields ...string) (success bo
 func (r *redisCache) DeleteHash(key string) (success bool, err error) {
 	result := r.Client.Del(context.Background(), key)
 	if result.Err() != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"redisCache DeleteHash error: ": result.Err(),
 		})
 		return false, result.Err()

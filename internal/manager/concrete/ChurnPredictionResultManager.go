@@ -6,7 +6,6 @@ import (
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	JsonParser "NotificationWorkerService/pkg/jsonParser"
 
-	logger "github.com/appneuroncompany/light-logger"
 	"github.com/appneuroncompany/light-logger/clogger"
 )
 
@@ -24,13 +23,13 @@ func (c *churnPredictionManager) SendMessageToClient(data *[]byte) (success bool
 	m := models.ChurnPredictionResultModel{}
 	err := (*c.JsonParser).DecodeJson(data, &m)
 	if err != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"byte array to ChurnPredictionResultModel, Json Parser Decode Err: ": err,
 		})
 		return false, err.Error()
 	}
 
-	defer clogger.Info(&logger.Messages{
+	defer clogger.Info(&map[string]interface{}{
 		"ChurnPredictionManager": m.ClientId + m.ProjectId,
 	})
 
@@ -41,7 +40,7 @@ func (c *churnPredictionManager) SendMessageToClient(data *[]byte) (success bool
 
 	v, err := (*c.JsonParser).EncodeJson(&difficultyServerResultResponseModel)
 	if err != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"difficultyServerResultResponseModel to byte array Json Parser Encode Err: ": err,
 		})
 		return false, err.Error()
@@ -51,7 +50,7 @@ func (c *churnPredictionManager) SendMessageToClient(data *[]byte) (success bool
 		m.ProjectId,
 		"ChurnPredictionResultChannel")
 	if websocketErr != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"WebSocket error: ": err,
 		})
 		return false, websocketErr.Error()

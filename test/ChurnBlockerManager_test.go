@@ -5,23 +5,21 @@ import (
 	"NotificationWorkerService/internal/manager/concrete"
 	"NotificationWorkerService/internal/models"
 	"NotificationWorkerService/pkg/jsonParser/gojson"
-	"NotificationWorkerService/test/Mock/Log"
 	"NotificationWorkerService/test/Mock/mockwebsocket"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func Test_SendMessageToClient_SuccessIsTrue(t *testing.T){
+func Test_SendMessageToClient_SuccessIsTrue(t *testing.T) {
 
 	//Arrange
 	var testWebsocket = new(mockwebsocket.MockWebSocket)
-	var testLog = new (mocklog.MockLogger)
 	var json = gojson.GoJsonConstructor()
 
 	IoC.JsonParser = json
 	IoC.WebSocket = testWebsocket
-	IoC.Logger = testLog
 
 	var churnBlockerManager = concrete.ChurnBlockerManagerConstructor()
 
@@ -45,8 +43,7 @@ func Test_SendMessageToClient_SuccessIsTrue(t *testing.T){
 	rawModel, _ := (*churnBlockerManager.JsonParser).EncodeJson(&m)
 
 	//Act
-	success, err:= churnBlockerManager.SendMessageToClient(rawModel)
-
+	success, err := churnBlockerManager.SendMessageToClient(rawModel)
 
 	//Assert
 	assert.Equal(t, true, success)
@@ -54,15 +51,13 @@ func Test_SendMessageToClient_SuccessIsTrue(t *testing.T){
 
 }
 
-func Test_SendMessageToClient_SuccessIsFalse(t *testing.T){
+func Test_SendMessageToClient_SuccessIsFalse(t *testing.T) {
 	//Arrange
 	var testWebsocket = new(mockwebsocket.MockWebSocket)
-	var testLog = new (mocklog.MockLogger)
 	var json = gojson.GoJsonConstructor()
 
 	IoC.JsonParser = json
 	IoC.WebSocket = testWebsocket
-	IoC.Logger = testLog
 
 	var churnBlockerManager = concrete.ChurnBlockerManagerConstructor()
 
@@ -86,8 +81,7 @@ func Test_SendMessageToClient_SuccessIsFalse(t *testing.T){
 	rawModel, _ := (*churnBlockerManager.JsonParser).EncodeJson(&m)
 
 	//Act
-	success, err:= churnBlockerManager.SendMessageToClient(rawModel)
-
+	success, err := churnBlockerManager.SendMessageToClient(rawModel)
 
 	//Assert
 	assert.Equal(t, false, success)

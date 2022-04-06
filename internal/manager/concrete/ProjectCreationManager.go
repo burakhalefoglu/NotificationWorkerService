@@ -6,7 +6,6 @@ import (
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	IJsonParser "NotificationWorkerService/pkg/jsonParser"
 
-	logger "github.com/appneuroncompany/light-logger"
 	"github.com/appneuroncompany/light-logger/clogger"
 )
 
@@ -25,12 +24,12 @@ func (r *projectCreationManager) SendMessageToCustomer(data *[]byte) (success bo
 	m := models.ProjectCreationResultModel{}
 	err := (*r.JsonParser).DecodeJson(data, &m)
 	if err != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"byte array to ProjectCreationResultModel, Json Parser Decode Err: ": err,
 		})
 		return false, err.Error()
 	}
-	defer clogger.Info(&logger.Messages{
+	defer clogger.Info(&map[string]interface{}{
 		"ChurnPredictionManager": m.CustomerId + m.ProjectId,
 	})
 
@@ -39,7 +38,7 @@ func (r *projectCreationManager) SendMessageToCustomer(data *[]byte) (success bo
 	}
 	v, err := (*r.JsonParser).EncodeJson(&responseModel)
 	if err != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"ProjectCreationResultDto to byte array Json Parser Encode Err: ": err,
 		})
 		return false, err.Error()
@@ -49,7 +48,7 @@ func (r *projectCreationManager) SendMessageToCustomer(data *[]byte) (success bo
 		m.ProjectId,
 		"ProjectCreationResultChannel")
 	if websocketErr != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"WebSocket error: ": err,
 		})
 		return false, websocketErr.Error()

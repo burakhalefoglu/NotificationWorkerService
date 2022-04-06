@@ -6,7 +6,6 @@ import (
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	IJsonParser "NotificationWorkerService/pkg/jsonParser"
 
-	logger "github.com/appneuroncompany/light-logger"
 	"github.com/appneuroncompany/light-logger/clogger"
 )
 
@@ -25,12 +24,12 @@ func (r *remoteOfferManager) SendMessageToClient(data *[]byte) (success bool, me
 	m := models.RemoteOfferModel{}
 	err := (*r.JsonParser).DecodeJson(data, &m)
 	if err != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"byte array to RemoteOfferModel, Json Parser Decode Err: ": err,
 		})
 		return false, err.Error()
 	}
-	defer clogger.Info(&logger.Messages{
+	defer clogger.Info(&map[string]interface{}{
 		"ChurnPredictionManager": m.ClientIdList,
 		"projectId":              m.ProjectId,
 	})
@@ -49,7 +48,7 @@ func (r *remoteOfferManager) SendMessageToClient(data *[]byte) (success bool, me
 		}
 		v, err := (*r.JsonParser).EncodeJson(&remoteOfferResponseModel)
 		if err != nil {
-			clogger.Error(&logger.Messages{
+			clogger.Error(&map[string]interface{}{
 				"RemoteOfferResponseModel to byte array Json Parser Encode Err: ": err,
 			})
 			return false, err.Error()
@@ -59,7 +58,7 @@ func (r *remoteOfferManager) SendMessageToClient(data *[]byte) (success bool, me
 			m.ProjectId,
 			"RemoteOfferChannel")
 		if websocketErr != nil {
-			clogger.Error(&logger.Messages{
+			clogger.Error(&map[string]interface{}{
 				"WebSocket error: ": err,
 			})
 			return false, websocketErr.Error()

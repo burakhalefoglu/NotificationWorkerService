@@ -6,7 +6,6 @@ import (
 	IWebSocket "NotificationWorkerService/internal/websocket"
 	IJsonParser "NotificationWorkerService/pkg/jsonParser"
 
-	logger "github.com/appneuroncompany/light-logger"
 	"github.com/appneuroncompany/light-logger/clogger"
 )
 
@@ -25,13 +24,13 @@ func (i *interstitialManager) SendMessageToClient(data *[]byte) (success bool, m
 	m := models.InterstitialAdModel{}
 	err := (*i.JsonParser).DecodeJson(data, &m)
 	if err != nil {
-		clogger.Error(&logger.Messages{
+		clogger.Error(&map[string]interface{}{
 			"byte array to InterstitialAdModel, Json Parser Decode Err: ": err,
 		})
 		return false, err.Error()
 	}
 
-	defer clogger.Info(&logger.Messages{
+	defer clogger.Info(&map[string]interface{}{
 		"ChurnPredictionManager": m.ClientIdList,
 		"projectId":              m.ProjectId,
 	})
@@ -44,7 +43,7 @@ func (i *interstitialManager) SendMessageToClient(data *[]byte) (success bool, m
 		}
 		v, err := (*i.JsonParser).EncodeJson(&interstitialAdResponseModel)
 		if err != nil {
-			clogger.Error(&logger.Messages{
+			clogger.Error(&map[string]interface{}{
 				"interstitialAdResponseModel to byte array Json Parser Encode Err: ": err,
 			})
 			return false, err.Error()
@@ -54,7 +53,7 @@ func (i *interstitialManager) SendMessageToClient(data *[]byte) (success bool, m
 			m.ProjectId,
 			"InterstitialAdChannel")
 		if websocketErr != nil {
-			clogger.Error(&logger.Messages{
+			clogger.Error(&map[string]interface{}{
 				"WebSocket error: ": err,
 			})
 			return false, websocketErr.Error()

@@ -5,24 +5,22 @@ import (
 	"NotificationWorkerService/internal/manager/concrete"
 	"NotificationWorkerService/internal/models"
 	"NotificationWorkerService/pkg/jsonParser/gojson"
-	mocklog "NotificationWorkerService/test/Mock/Log"
 	"NotificationWorkerService/test/Mock/mockwebsocket"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func Test_RemoteOfferSendMessageToClient_SuccessIsTrue(t *testing.T){
+func Test_RemoteOfferSendMessageToClient_SuccessIsTrue(t *testing.T) {
 
 	//Arrange
 	var testWebsocket = new(mockwebsocket.MockWebSocket)
-	var testLog = new (mocklog.MockLogger)
 	var json = gojson.GoJsonConstructor()
 
 	IoC.JsonParser = json
 	IoC.WebSocket = testWebsocket
-	IoC.Logger = testLog
 
 	var remoteOffer = concrete.RemoteOfferManagerConstructor()
 
@@ -31,26 +29,26 @@ func Test_RemoteOfferSendMessageToClient_SuccessIsTrue(t *testing.T){
 			"TestId1",
 			"TestId2",
 		},
-		ProjectId:   "TestProjectId",
+		ProjectId:    "TestProjectId",
 		ProductModel: nil,
-		FirstPrice:  12,
-		LastPrice:   8,
-		OfferId:     1,
-		IsGift:      false,
-		GiftTexture: nil,
-		StartTime:   time.Time{},
-		FinishTime:  time.Time{},
+		FirstPrice:   12,
+		LastPrice:    8,
+		OfferId:      1,
+		IsGift:       false,
+		GiftTexture:  nil,
+		StartTime:    time.Time{},
+		FinishTime:   time.Time{},
 	}
 
 	remoteOfferDto := models.RemoteOfferDto{
 		ProductModel: nil,
-		FirstPrice:  12,
-		LastPrice:   8,
-		OfferId:     1,
-		IsGift:      false,
-		GiftTexture: nil,
-		StartTime:   time.Time{},
-		FinishTime:  time.Time{},
+		FirstPrice:   12,
+		LastPrice:    8,
+		OfferId:      1,
+		IsGift:       false,
+		GiftTexture:  nil,
+		StartTime:    time.Time{},
+		FinishTime:   time.Time{},
 	}
 	responseModel, _ := (*remoteOffer.JsonParser).EncodeJson(&remoteOfferDto)
 
@@ -65,8 +63,7 @@ func Test_RemoteOfferSendMessageToClient_SuccessIsTrue(t *testing.T){
 	rawModel, _ := (*remoteOffer.JsonParser).EncodeJson(&m)
 
 	//Act
-	success, err:= remoteOffer.SendMessageToClient(rawModel)
-
+	success, err := remoteOffer.SendMessageToClient(rawModel)
 
 	//Assert
 	assert.Equal(t, true, success)
@@ -74,16 +71,14 @@ func Test_RemoteOfferSendMessageToClient_SuccessIsTrue(t *testing.T){
 
 }
 
-func Test_RemoteOfferSendMessageToClient_SuccessIsFalse(t *testing.T){
+func Test_RemoteOfferSendMessageToClient_SuccessIsFalse(t *testing.T) {
 
 	//Arrange
 	var testWebsocket = new(mockwebsocket.MockWebSocket)
-	var testLog = new (mocklog.MockLogger)
 	var json = gojson.GoJsonConstructor()
 
 	IoC.JsonParser = json
 	IoC.WebSocket = testWebsocket
-	IoC.Logger = testLog
 
 	var remoteOffer = concrete.RemoteOfferManagerConstructor()
 
@@ -92,26 +87,26 @@ func Test_RemoteOfferSendMessageToClient_SuccessIsFalse(t *testing.T){
 			"TestId1",
 			"TestId2",
 		},
-		ProjectId:   "TestProjectId",
+		ProjectId:    "TestProjectId",
 		ProductModel: nil,
-		FirstPrice:  12,
-		LastPrice:   8,
-		OfferId:     1,
-		IsGift:      false,
-		GiftTexture: nil,
-		StartTime:   time.Time{},
-		FinishTime:  time.Time{},
+		FirstPrice:   12,
+		LastPrice:    8,
+		OfferId:      1,
+		IsGift:       false,
+		GiftTexture:  nil,
+		StartTime:    time.Time{},
+		FinishTime:   time.Time{},
 	}
 
 	remoteOfferDto := models.RemoteOfferDto{
 		ProductModel: nil,
-		FirstPrice:  12,
-		LastPrice:   8,
-		OfferId:     1,
-		IsGift:      false,
-		GiftTexture: nil,
-		StartTime:   time.Time{},
-		FinishTime:  time.Time{},
+		FirstPrice:   12,
+		LastPrice:    8,
+		OfferId:      1,
+		IsGift:       false,
+		GiftTexture:  nil,
+		StartTime:    time.Time{},
+		FinishTime:   time.Time{},
 	}
 	responseModel, _ := (*remoteOffer.JsonParser).EncodeJson(&remoteOfferDto)
 
@@ -126,12 +121,9 @@ func Test_RemoteOfferSendMessageToClient_SuccessIsFalse(t *testing.T){
 	rawModel, _ := (*remoteOffer.JsonParser).EncodeJson(&m)
 
 	//Act
-	success, err:= remoteOffer.SendMessageToClient(rawModel)
-
+	success, err := remoteOffer.SendMessageToClient(rawModel)
 
 	//Assert
 	assert.Equal(t, false, success)
 	assert.Equal(t, "fakeError", err)
 }
-
-

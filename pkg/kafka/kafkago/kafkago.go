@@ -4,11 +4,9 @@ import (
 	"NotificationWorkerService/pkg/helper"
 	"context"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
-	logger "github.com/appneuroncompany/light-logger"
 	"github.com/appneuroncompany/light-logger/clogger"
 	"github.com/google/uuid"
 	"github.com/segmentio/kafka-go"
@@ -30,42 +28,38 @@ func (k *kafkaGo) Produce(key *[]byte, value *[]byte, topic string) (err error) 
 		Time:  time.Now(),
 	}
 	err = writer.WriteMessages(context.Background(), message)
-	log.Print("kafkaGo", "Producer", topic, key)
-	clogger.Error(&logger.Messages{
+	clogger.Error(&map[string]interface{}{
 		fmt.Sprintf("kafkaGo produce error %s %s : ", topic, key): err,
 	})
 	return err
 }
 
-func (k *kafkaGo) Consume(topic string, groupId string, wg *sync.WaitGroup, callback func(data *[]byte) (interface{}, bool, string)) {
+func (k *kafkaGo) Consume(topic string, groupId string, wg *sync.WaitGroup, callback func(data *[]byte) (bool, string)) {
 	reader, _ := readerConfigure([]string{helper.ResolvePath("KAFKA_HOST", "KAFKA_PORT")}, groupId, topic)
-	log.Println("Consumer Started: ", topic, groupId)
+	clogger.Info(&map[string]interface{}{
+		"Consumer started on topic: ": topic,
+	})
 	defer func(reader *kafka.Reader) {
 		wg.Done()
 		err := reader.Close()
 		if err != nil {
-			//log.Fatal("kafkaGo", "Consume", "failed to reader.Close() messages:"+err.Error())
-			clogger.Error(&logger.Messages{
+			clogger.Error(&map[string]interface{}{
 				"kafkaGo Consume failed to reader.Close() messages: ": err,
 			})
 		}
 	}(reader)
-	log.Print("kafkaGo", "Consume", reader.Stats().ClientID)
 	for {
 		m, err := reader.FetchMessage(context.Background())
 		if err != nil {
-			//log.Fatal("kafkaGo", "Consume", "error while receiving message: "+err.Error())
-			clogger.Error(&logger.Messages{
+			clogger.Error(&map[string]interface{}{
 				"kafkaGo Consume error while receiving message: ": err,
 			})
 			continue
 		}
-		log.Print("kafkaGo", "Consume", topic, groupId)
-		_, isSuccess, _ := callback(&m.Value)
+		isSuccess, _ := callback(&m.Value)
 		if isSuccess {
 			if err := reader.CommitMessages(context.Background(), m); err != nil {
-				//log.Fatal("kafkaGo", "Consume", "failed to commit messages:"+err.Error())
-				clogger.Error(&logger.Messages{
+				clogger.Error(&map[string]interface{}{
 					"kafkaGo Consume failed to commit messages: ": err,
 				})
 			}
