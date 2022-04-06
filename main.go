@@ -16,6 +16,7 @@ import (
 
 func main() {
 	defer helper.DeleteHealthFile()
+	logger.Log.App = "NotificationWorkerService"
 	runtime.MemProfileRate = 0
 	err := godotenv.Load()
 	if err != nil {
@@ -23,7 +24,6 @@ func main() {
 		return
 	}
 	IoC.InjectContainers(golobby.InjectionConstructor())
-	logger.Log.App = "NotificationWorkerService"
 
 	var wg sync.WaitGroup
 	controller.StartListening(&IoC.Controller, &wg)
