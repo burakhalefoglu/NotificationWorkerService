@@ -4,11 +4,11 @@ import (
 	"NotificationWorkerService/internal/websocket/fiber/ChannelWorker/ClientWorker"
 	"NotificationWorkerService/internal/websocket/fiber/ChannelWorker/CustomerWorker"
 	"NotificationWorkerService/internal/websocket/fiber/hub"
-	"NotificationWorkerService/pkg/helper"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/websocket/v2"
 	"log"
 	"sync"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 )
 
 type fiberWebsocket struct {
@@ -73,7 +73,7 @@ func (f *fiberWebsocket) ListenServer(wgGroup *sync.WaitGroup) {
 		app,
 		f.Channel["ProjectCreationResultChannel"])
 
-	if err := app.Listen(helper.ResolvePath("WEBSOCKET_HOST", "WEBSOCKET_PORT")); err != nil {
+	if err := app.Listen("localhost:8000"); err != nil {
 		panic(err)
 	}
 }
